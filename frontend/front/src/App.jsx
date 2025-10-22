@@ -1,35 +1,36 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from 'react';
+import Header from './components/Header';
+import HomePage from './components/HomePage';
+import CompanyLogin from './components/CompanyLogin';
+import MemberLogin from './components/MemberLogin';
+import ContactUs from './components/ContactUs';
+import MemberInfo from './components/MemberInfo';
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [currentPage, setCurrentPage] = useState('home');
+
+  const renderPage = () => {
+    switch (currentPage) {
+      case 'home':
+        return <HomePage onNavigate={setCurrentPage} />;
+      case 'company-login':
+        return <CompanyLogin onNavigate={setCurrentPage} />;
+      case 'member-login':
+        return <MemberLogin onNavigate={setCurrentPage} />;
+      case 'contact':
+        return <ContactUs onNavigate={setCurrentPage} />;
+      case 'member-directory':
+        return <MemberInfo onNavigate={setCurrentPage} />;
+      default:
+        return <HomePage onNavigate={setCurrentPage} />;
+    }
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div className="min-h-screen" style={{ backgroundColor: '#ebe3d5' }}>
+      {currentPage === 'home' && <Header onNavigate={setCurrentPage} />}
+      {renderPage()}
+    </div>
+  );
 }
 
-export default App
