@@ -66,7 +66,7 @@ export default function HomePage({ onNavigate }) {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {partners.map((partner, index) => (
               <div key={index} className="flex flex-col items-center gap-4 p-6 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
-                <ImageWithFallback
+                <img
                   src={partner.logo}
                   alt={partner.name}
                   className="w-full h-20 object-contain"
@@ -150,7 +150,7 @@ export default function HomePage({ onNavigate }) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {galleryImages.map((image, index) => (
               <div key={index} className="overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-shadow group">
-                <ImageWithFallback
+                <img
                   src={image}
                   alt={`Meeting ${index + 1}`}
                   className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"

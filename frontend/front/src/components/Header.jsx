@@ -9,8 +9,8 @@ export default function Header({ onNavigate }) {
             onClick={() => onNavigate('home')}
             className="flex items-center gap-3 hover:opacity-80 transition-opacity"
           >
-            <ImageWithFallback
-              src="https://images.unsplash.com/photo-1661347998423-b15d37d6f61e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxidXNpbmVzcyUyMHRlY2glMjBsb2dvfGVufDF8fHx8MTc2MTE1NDg2OXww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+            <img
+              src="null"
               alt="CSIET Logo"
               className="h-12 w-12 rounded-full object-cover"
             />
