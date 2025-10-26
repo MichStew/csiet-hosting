@@ -6,6 +6,7 @@ Modern full-stack project for tracking CSIET student members, employer access, a
 
 ## Required Tools & Services
 
+<<<<<<< HEAD
 | Purpose | Tool | Notes |
 | --- | --- | --- |
 | JavaScript tooling | **Node.js 18+** (bundled `npm`) | Needed for Vite dev server, React build, linting, and Tailwind tooling in both the repo root and `frontend/front`. |
@@ -16,6 +17,10 @@ Modern full-stack project for tracking CSIET student members, employer access, a
 | Database | **MongoDB Atlas** (or local MongoDB with URI) | Supply a valid `MONGO_URI`/`.env` entry for any script or backend component that talks to the database. |
 | Version control | **Git** | Used for cloning and managing contribution workflow. |
 | Optional IDE | VS Code / JetBrains / etc. | Any editor with JavaScript + Python support works; not enforced. |
+=======
+ There are a few goals that need to be met with this project
+ // this should make a conflict 
+>>>>>>> main
 
 ---
 
