@@ -5,6 +5,7 @@
 
 
  There are a few goals that need to be met with this project
+ // this should make a conflict 
 
 
  - members need to be able to login and update their own information
