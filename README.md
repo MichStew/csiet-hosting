@@ -1,5 +1,5 @@
 # CSIET Member Database
-
+// add comment to make an issue
 Modern full-stack project for tracking CSIET student members, employer access, and club-facing landing pages. The repository currently provides the React/Vite frontend, an outline for backend and database layers, and starter tooling.
 
 ---
