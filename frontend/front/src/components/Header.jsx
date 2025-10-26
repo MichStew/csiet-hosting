@@ -23,8 +23,7 @@ export default function Header({ onNavigate }) {
               onClick={() => onNavigate('company-login')}
               className="border-2 bg-white hover:bg-gray-50"
               style={{ borderColor: '#733635', color: '#733635' }}
-            >
-              Partner Logon
+            > Partner Login
             </Button>
             <Button 
               variant="outline"
