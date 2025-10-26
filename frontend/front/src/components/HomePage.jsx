@@ -13,20 +13,19 @@ export default function HomePage({ onNavigate }) {
     { name: 'Dell', logo: 'https://via.placeholder.com/150x80/733635/FFFFFF?text=Dell' },
     { name: 'HP Enterprise', logo: 'https://via.placeholder.com/150x80/733635/FFFFFF?text=HPE' },
   ];
-
+/*can be changed, useful to have everything in one place */
   const galleryImages = [
-    'https://images.unsplash.com/photo-1709715357520-5e1047a2b691?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxidXNpbmVzcyUyMG1lZXRpbmclMjB0ZWFtfGVufDF8fHx8MTc2MTExODUwNnww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
-    'https://images.unsplash.com/photo-1590650046871-92c887180603?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjBuZXR3b3JraW5nfGVufDF8fHx8MTc2MTA1NzgyMXww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
-    'https://images.unsplash.com/photo-1753162658596-2ccba5e4246a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0ZWFtJTIwY29sbGFib3JhdGlvbiUyMHdvcmtzaG9wfGVufDF8fHx8MTc2MTE1NDg3MHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
-    'https://images.unsplash.com/photo-1709715357564-ab64e091ead9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjBwcmVzZW50YXRpb258ZW58MXx8fHwxNzYxMTI5MzY3fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
-    'https://images.unsplash.com/photo-1540575467063-178a50c2df87?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxidXNpbmVzcyUyMGNvbmZlcmVuY2V8ZW58MXx8fHwxNzYxMTM4Nzk2fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
-    'https://images.unsplash.com/photo-1606836591695-4d58a73eba1e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb3Jwb3JhdGUlMjBtZWV0aW5nfGVufDF8fHx8MTc2MTA2ODgyMHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
-    'https://images.unsplash.com/photo-1760840159368-f4efb448f756?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjBzZW1pbmFyfGVufDF8fHx8MTc2MTE1NDg3MXww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
+    '',
+    '',
+    '',
+    '',
+    '',
+    ''
   ];
 
   const pastMeetings = [
     {
-      title: 'Technical Sales Workshop with Microsoft',
+      title: 'Meet The Team',
       date: 'October 15, 2025',
       description: 'Learn how to effectively communicate technical solutions to non-technical stakeholders. Microsoft sales engineers shared their expertise in translating complex cloud architectures into business value.',
       company: 'Microsoft'
@@ -206,9 +205,14 @@ export default function HomePage({ onNavigate }) {
             <div>
               <h3 className="mb-4">Connect</h3>
               <div className="space-y-2">
-                <p>LinkedIn</p>
-                <p>Instagram</p>
-                <p>Twitter</p>
+              
+               <p> <a href=
+                {"https://www.linkedin.com/company/csiet"} 
+                target={"blank"}> LinkedIn </a> </p>
+               
+               <p>< a href={'https://www.instagram.com/usc_csiet/'}
+               target={'blank'}> Instagram </a> </p>
+            
               </div>
             </div>
           </div>
