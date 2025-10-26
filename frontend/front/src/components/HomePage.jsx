@@ -2,7 +2,7 @@ import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 
 
-export default function HomePage({ onNavigate }) {
+export default function HomePage({ onNavigate, isAuthenticated }) {
   const partners = [
     { name: 'Microsoft', logo: 'https://via.placeholder.com/150x80/733635/FFFFFF?text=Microsoft' },
     { name: 'IBM', logo: 'https://via.placeholder.com/150x80/733635/FFFFFF?text=IBM' },
@@ -92,14 +92,19 @@ export default function HomePage({ onNavigate }) {
             </p>
           </div>
 
-          <div className="flex justify-center mb-12">
+          <div className="flex flex-col items-center gap-2 mb-12">
             <Button 
-              onClick={() => onNavigate('member-directory')}
+              onClick={() => onNavigate(isAuthenticated ? 'member-directory' : 'member-login')}
               className="text-white hover:opacity-90"
               style={{ backgroundColor: '#733635' }}
             >
-              View Member Directory
+              {isAuthenticated ? 'View Member Directory' : 'Login to View Directory'}
             </Button>
+            {!isAuthenticated && (
+              <p className="text-sm text-gray-600">
+                Club membership login required to browse the directory.
+              </p>
+            )}
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
@@ -224,4 +229,3 @@ export default function HomePage({ onNavigate }) {
     </div>
   );
 }
-

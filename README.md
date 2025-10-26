@@ -9,12 +9,12 @@ Member-focused web app that lets CSIET students manage their profiles while part
 | Category | Required Tooling | Why it matters |
 | --- | --- | --- |
 | Core JS runtime | **Node.js 18+** (ships with `npm`) | Powers Vite, React, Tailwind builds, and shared root tooling. |
-| Bundler / Dev server | **Vite** (`npm run dev`, `npm run build`, `npm run preview`) | Hot-module reload during development and production bundling. |
-| UI framework | **React 19** + **React DOM 19** | Main frontend view layer located in `frontend/front`. |
+| Frontend | **Vite** + **React 19** + **React DOM 19** | Live dev server and UI stack in `frontend/front`. |
 | Styling | **Tailwind CSS**, **PostCSS**, **Autoprefixer** | Utility-first styling and build-time processing defined both at repo root (shared) and inside the frontend workspace. |
 | Linting | **ESLint 9** with React/Refresh plugins | Ensures consistent code standards via `npm run lint` in `frontend/front`. |
+| Backend | **Express 4**, **Mongoose 8**, **jsonwebtoken**, **bcryptjs** | REST API (`backend/`) that authenticates users against MongoDB. |
+| Database | **MongoDB Atlas** (or self-hosted MongoDB) | Stores member/company login data accessed via Mongoose. |
 | Python runtime | **Python 3.10+** with `pip` | Needed to run `database.py` and any future backend scripts that integrate with MongoDB. |
-| Database | **MongoDB Atlas** (or self-hosted MongoDB) + `pymongo` | Current prototype uses an Atlas URI; production backend will share the same requirement. |
 | Version control | **Git** | Clone/push workflow and collaboration. |
 | Optional | IDE with JS + Python support (VS Code, WebStorm, etc.) | Helpful, but not mandated. |
 
@@ -36,15 +36,22 @@ Member-focused web app that lets CSIET students manage their profiles while part
    cd frontend/front
    npm install
    ```
-4. **Run the app**
+4. **Install backend dependencies**
    ```sh
-   npm run dev
+   cd ../../backend
+   npm install
    ```
-   - Default preview: `http://localhost:5173`
-   - `npm run build` outputs production assets under `frontend/front/dist`
-   - `npm run preview` serves the production bundle locally
-5. **Lint the React codebase**
+5. **Copy environment templates (see below) and seed the default member**
    ```sh
+   cp .env.example .env
+   npm run seed
+   ```
+6. **Run the services**
+   - Backend API: `npm run dev` from `backend` (listens on `http://localhost:4000`)
+   - Frontend UI: `npm run dev` from `frontend/front` (proxy requests to backend)
+7. **Lint the React codebase**
+   ```sh
+   cd frontend/front
    npm run lint
    ```
 
@@ -52,18 +59,40 @@ Member-focused web app that lets CSIET students manage their profiles while part
 
 ## Environment Configuration
 
-- Create a `.env` file (or export variables) for secrets that will eventually be shared by the backend and tooling:
-  ```ini
-  MONGO_URI=mongodb+srv://<user>:<pass>@cluster.mongodb.net/csiet
-  ```
-- `database.py` expects `pymongo` to be installed and can reference the same `MONGO_URI`. Recommended workflow:
+### Backend (`backend/.env`)
+
+```
+PORT=4000
+MONGO_URI=mongodb://localhost:27017/csiet
+JWT_SECRET=super-secret-key
+DEFAULT_MEMBER_EMAIL=member@example.com
+DEFAULT_MEMBER_PASSWORD=changeme123
+DEFAULT_MEMBER_NAME=Demo Member
+CLIENT_ORIGIN=http://localhost:5173
+```
+
+- `npm run seed` inserts the default member using the credentials above (update before seeding in production).
+- `CLIENT_ORIGIN` may contain a comma-separated list of allowed frontends for CORS.
+
+### Frontend (`frontend/front/.env`)
+
+```
+VITE_API_BASE_URL=http://localhost:4000
+```
+
+- The member login form posts to `${VITE_API_BASE_URL}/api/auth/login`.
+- When deploying, point this value to the hosted backend URL.
+
+### Python utilities
+
+- `database.py` still serves as a quick connectivity check for MongoDB via `pymongo`. Example usage:
   ```sh
   python -m venv .venv
   source .venv/bin/activate  # Windows: .venv\Scripts\activate
   pip install pymongo
+  export MONGO_URI="mongodb+srv://<user>:<pass>@cluster.mongodb.net/csiet"
   python database.py
   ```
-- When the backend service lands in `backend/`, follow the same pattern (dotenv support or secrets manager) so the URI never lives in source control.
 
 ---
 
@@ -72,7 +101,7 @@ Member-focused web app that lets CSIET students manage their profiles while part
 ```
 CSIET-Member-Database/
 ├── frontend/front/        # Vite + React app, Tailwind configs, ESLint setup
-├── backend/               # Reserved for the API/service layer (currently placeholder)
+├── backend/               # Express + MongoDB API (auth routes, seeding scripts)
 ├── database.py            # MongoDB connection smoke test using pymongo
 ├── database/              # Placeholder for schema docs, seed data, migrations
 ├── devops/                # Placeholder for IaC, deployment scripts, CI/CD configs
@@ -86,6 +115,9 @@ CSIET-Member-Database/
 | Location | Command | Purpose |
 | --- | --- | --- |
 | repo root | `npm install` | Sync shared Tailwind/PostCSS dependencies. |
+| backend | `npm install` | Install Express/Mongoose dependencies. |
+| backend | `npm run dev` | Start the REST API with nodemon. |
+| backend | `npm run seed` | Insert the default member credential. |
 | `frontend/front` | `npm install` | Install React/Vite dependencies. |
 | `frontend/front` | `npm run dev` | Start Vite dev server with HMR. |
 | `frontend/front` | `npm run build` | Produce optimized production bundle. |

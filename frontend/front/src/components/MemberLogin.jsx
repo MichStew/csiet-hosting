@@ -1,14 +1,52 @@
+import { useState } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Label } from './ui/label';
 import { ArrowLeft } from 'lucide-react';
 
-export default function MemberLogin({ onNavigate }) {
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Handle login logic here
-    alert('Member login functionality would be implemented here');
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
+
+export default function MemberLogin({ onNavigate, onLoginSuccess }) {
+  const [formValues, setFormValues] = useState({ email: '', password: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setFormValues((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setIsSubmitting(true);
+    setErrorMessage('');
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formValues.email,
+          password: formValues.password,
+          role: 'member',
+        }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data?.message || 'Unable to log in. Please try again.');
+      }
+
+      onLoginSuccess?.({ token: data.token, user: data.user });
+    } catch (err) {
+      setErrorMessage(err.message || 'Unexpected error.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -39,28 +77,40 @@ export default function MemberLogin({ onNavigate }) {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="member-email">Email</Label>
-                  <Input 
-                    id="member-email" 
-                    type="email" 
+                  <Input
+                    id="member-email"
+                    name="email"
+                    type="email"
                     placeholder="member@email.sc.edu"
+                    value={formValues.email}
+                    onChange={handleChange}
                     required
+                    autoComplete="email"
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="member-password">Password</Label>
-                  <Input 
-                    id="member-password" 
-                    type="password" 
+                  <Input
+                    id="member-password"
+                    name="password"
+                    type="password"
                     placeholder="Enter your password"
+                    value={formValues.password}
+                    onChange={handleChange}
                     required
+                    autoComplete="current-password"
                   />
                 </div>
+                {errorMessage && (
+                  <p className="text-sm text-red-500">{errorMessage}</p>
+                )}
                 <Button 
                   type="submit" 
                   className="w-full text-white"
                   style={{ backgroundColor: '#733635' }}
+                  disabled={isSubmitting}
                 >
-                  Login
+                  {isSubmitting ? 'Signing in…' : 'Login'}
                 </Button>
               </form>
             </CardContent>
@@ -70,4 +120,3 @@ export default function MemberLogin({ onNavigate }) {
     </div>
   );
 }
-

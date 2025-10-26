@@ -1,6 +1,6 @@
 import { Button } from './ui/button';
 
-export default function Header({ onNavigate }) {
+export default function Header({ onNavigate, isAuthenticated, onLogout, user }) {
   return (
     <header className="sticky top-0 z-50" style={{ backgroundColor: '#ebe3d5' }}>
       <div className="container mx-auto px-4 py-6">
@@ -23,16 +23,38 @@ export default function Header({ onNavigate }) {
               onClick={() => onNavigate('company-login')}
               className="border-2 bg-white hover:bg-gray-50"
               style={{ borderColor: '#733635', color: '#733635' }}
-            > Partner Login
-            </Button>
-            <Button 
-              variant="outline"
-              onClick={() => onNavigate('member-login')}
-              className="border-2 bg-white hover:bg-gray-50"
-              style={{ borderColor: '#733635', color: '#733635' }}
             >
-              Member Login
+              Partner Login
             </Button>
+            {isAuthenticated ? (
+              <>
+                <Button 
+                  variant="outline"
+                  onClick={() => onNavigate('member-directory')}
+                  className="border-2 bg-white hover:bg-gray-50"
+                  style={{ borderColor: '#733635', color: '#733635' }}
+                >
+                  Member Directory
+                </Button>
+                <Button 
+                  variant="ghost"
+                  onClick={onLogout}
+                  className="hover:bg-white/40"
+                  style={{ color: '#733635' }}
+                >
+                  Logout{user?.name ? ` (${user.name.split(' ')[0]})` : ''}
+                </Button>
+              </>
+            ) : (
+              <Button 
+                variant="outline"
+                onClick={() => onNavigate('member-login')}
+                className="border-2 bg-white hover:bg-gray-50"
+                style={{ borderColor: '#733635', color: '#733635' }}
+              >
+                Member Login
+              </Button>
+            )}
             <Button 
               onClick={() => onNavigate('contact')}
               className="text-white hover:opacity-90"
@@ -46,4 +68,3 @@ export default function Header({ onNavigate }) {
     </header>
   );
 }
-
