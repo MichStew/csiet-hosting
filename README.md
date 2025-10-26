@@ -1,44 +1,33 @@
 # CSIET Member Database
 
-| Purpose | Tool | Notes |
+Member-focused web app that lets CSIET students manage their profiles while partner companies browse approved talent. The repo currently ships a Vite/React frontend plus placeholders for the backend, database, and DevOps tracks that the team will fill in as the build matures.
+
+---
+
+## Tooling Checklist
+
+| Category | Required Tooling | Why it matters |
 | --- | --- | --- |
-| JavaScript tooling | **Node.js 18+** (bundled `npm`) | Needed for Vite dev server, React build, linting, and Tailwind tooling in both the repo root and `frontend/front`. |
-| Frontend bundler | **Vite** (installed via npm scripts) | Available through `npm run dev/build/preview` once dependencies are installed. |
-| Package linting | **ESLint** | Runs with `npm run lint` at `frontend/front`. |
-| Styling | **Tailwind CSS** + **PostCSS** + **Autoprefixer** | Configured in root `package.json` (future shared styles) and `frontend/front`. |
-| Python runtime | **Python 3.10+** with `pip` | Required for `database.py`, which demonstrates MongoDB connectivity using `pymongo`. |
-| Database | **MongoDB Atlas** (or local MongoDB with URI) | Supply a valid `MONGO_URI`/`.env` entry for any script or backend component that talks to the database. |
-| Version control | **Git** | Used for cloning and managing contribution workflow. |
-| Optional IDE | VS Code / JetBrains / etc. | Any editor with JavaScript + Python support works; not enforced. |
-=======
- There are a few goals that need to be met with this project
- // this should make a conflict 
->>>>>>> main
+| Core JS runtime | **Node.js 18+** (ships with `npm`) | Powers Vite, React, Tailwind builds, and shared root tooling. |
+| Bundler / Dev server | **Vite** (`npm run dev`, `npm run build`, `npm run preview`) | Hot-module reload during development and production bundling. |
+| UI framework | **React 19** + **React DOM 19** | Main frontend view layer located in `frontend/front`. |
+| Styling | **Tailwind CSS**, **PostCSS**, **Autoprefixer** | Utility-first styling and build-time processing defined both at repo root (shared) and inside the frontend workspace. |
+| Linting | **ESLint 9** with React/Refresh plugins | Ensures consistent code standards via `npm run lint` in `frontend/front`. |
+| Python runtime | **Python 3.10+** with `pip` | Needed to run `database.py` and any future backend scripts that integrate with MongoDB. |
+| Database | **MongoDB Atlas** (or self-hosted MongoDB) + `pymongo` | Current prototype uses an Atlas URI; production backend will share the same requirement. |
+| Version control | **Git** | Clone/push workflow and collaboration. |
+| Optional | IDE with JS + Python support (VS Code, WebStorm, etc.) | Helpful, but not mandated. |
 
 ---
 
-## Repository Layout
+## Quick Start
 
-```
-CSIET-Member-Database/
-├── frontend/front/      # React + Vite source, Tailwind styling, linting configs
-├── backend/             # Placeholder for future API implementation
-├── database.py          # Sample MongoDB connection script (Python + pymongo)
-├── database/            # Placeholder for schema/migration assets
-├── devops/              # Placeholder for deployment/infrastructure automation
-├── node_modules/, package*.json  # Root-level Tailwind tooling (shared styles)
-```
-
----
-
-## Frontend Setup & Commands
-
-1. **Clone the project**
+1. **Clone & enter the repo**
    ```sh
    git clone <repo-url>
    cd CSIET-Member-Database
    ```
-2. **Install shared tooling (optional but keeps Tailwind versions aligned)**
+2. **Install shared Node tooling (keeps Tailwind/PostCSS versions aligned)**
    ```sh
    npm install
    ```
@@ -47,12 +36,13 @@ CSIET-Member-Database/
    cd frontend/front
    npm install
    ```
-4. **Run the Vite dev server**
+4. **Run the app**
    ```sh
    npm run dev
    ```
-   - Default URL: `http://localhost:5173`
-   - Use `npm run build` for production output and `npm run preview` to test the built assets.
+   - Default preview: `http://localhost:5173`
+   - `npm run build` outputs production assets under `frontend/front/dist`
+   - `npm run preview` serves the production bundle locally
 5. **Lint the React codebase**
    ```sh
    npm run lint
@@ -60,27 +50,56 @@ CSIET-Member-Database/
 
 ---
 
-## Database & Backend Notes
+## Environment Configuration
 
-The backend and database layers are currently placeholders. To experiment with MongoDB connectivity:
-
-```sh
-python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
-pip install pymongo
-export MONGO_URI="mongodb+srv://<user>:<pass>@cluster.mongodb.net/csiet"
-python database.py
-```
-
-- Replace the placeholder URI in `database.py` with a secure connection string (ideally via environment variables).
-- When the backend service is implemented under `backend/`, it will likely depend on the same MongoDB connection and Python or Node tooling described above.
+- Create a `.env` file (or export variables) for secrets that will eventually be shared by the backend and tooling:
+  ```ini
+  MONGO_URI=mongodb+srv://<user>:<pass>@cluster.mongodb.net/csiet
+  ```
+- `database.py` expects `pymongo` to be installed and can reference the same `MONGO_URI`. Recommended workflow:
+  ```sh
+  python -m venv .venv
+  source .venv/bin/activate  # Windows: .venv\Scripts\activate
+  pip install pymongo
+  python database.py
+  ```
+- When the backend service lands in `backend/`, follow the same pattern (dotenv support or secrets manager) so the URI never lives in source control.
 
 ---
 
-## Next Steps for Contributors
+## Directory Guide
 
-- Flesh out `backend/` with chosen framework (FastAPI, Express, etc.) and document its runtime/tooling requirements.
-- Define database schemas/migrations inside `database/`.
-- Expand `devops/` with infrastructure-as-code or deployment scripts (Docker, CI/CD).
+```
+CSIET-Member-Database/
+├── frontend/front/        # Vite + React app, Tailwind configs, ESLint setup
+├── backend/               # Reserved for the API/service layer (currently placeholder)
+├── database.py            # MongoDB connection smoke test using pymongo
+├── database/              # Placeholder for schema docs, seed data, migrations
+├── devops/                # Placeholder for IaC, deployment scripts, CI/CD configs
+├── node_modules/, package*.json  # Root-level shared tooling for Tailwind/PostCSS
+```
 
-With the tools listed above installed, you can run every component currently present in the repo and are ready to iterate on the remaining layers. Let the maintainers know if additional stack details would help! 
+---
+
+## Common Commands
+
+| Location | Command | Purpose |
+| --- | --- | --- |
+| repo root | `npm install` | Sync shared Tailwind/PostCSS dependencies. |
+| `frontend/front` | `npm install` | Install React/Vite dependencies. |
+| `frontend/front` | `npm run dev` | Start Vite dev server with HMR. |
+| `frontend/front` | `npm run build` | Produce optimized production bundle. |
+| `frontend/front` | `npm run preview` | Serve the built assets for local QA. |
+| `frontend/front` | `npm run lint` | Apply ESLint rules (JS + React). |
+| repo root | `python database.py` | Verify MongoDB connectivity (requires `pymongo` + configured URI). |
+
+---
+
+## Roadmap & Next Actions
+
+- Stand up the backend inside `backend/` (FastAPI, Express, or preferred framework) and document the runtime/language-specific tooling it needs.
+- Capture database schema decisions under `database/` (ERDs, migrations, seed data) so contributors can bootstrap local data quickly.
+- Populate `devops/` with infrastructure-as-code, CI/CD definitions, and deployment runbooks.
+- Once backend and DevOps layers exist, extend this README with service-specific setup instructions (Docker, tests, etc.).
+
+With the tools above installed, new contributors can boot the frontend, validate MongoDB access, and start filling in the remaining layers without guessing what to install. 
