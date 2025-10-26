@@ -1,64 +1,88 @@
- Member Database with the purpose of holding information on members of CSIET. 
+# CSIET Member Database
 
+Modern full-stack project for tracking CSIET student members, employer access, and club-facing landing pages. The repository currently provides the React/Vite frontend, an outline for backend and database layers, and starter tooling.
 
- --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+---
 
+## Required Tools & Services
 
- There are a few goals that need to be met with this project
+| Purpose | Tool | Notes |
+| --- | --- | --- |
+| JavaScript tooling | **Node.js 18+** (bundled `npm`) | Needed for Vite dev server, React build, linting, and Tailwind tooling in both the repo root and `frontend/front`. |
+| Frontend bundler | **Vite** (installed via npm scripts) | Available through `npm run dev/build/preview` once dependencies are installed. |
+| Package linting | **ESLint** | Runs with `npm run lint` at `frontend/front`. |
+| Styling | **Tailwind CSS** + **PostCSS** + **Autoprefixer** | Configured in root `package.json` (future shared styles) and `frontend/front`. |
+| Python runtime | **Python 3.10+** with `pip` | Required for `database.py`, which demonstrates MongoDB connectivity using `pymongo`. |
+| Database | **MongoDB Atlas** (or local MongoDB with URI) | Supply a valid `MONGO_URI`/`.env` entry for any script or backend component that talks to the database. |
+| Version control | **Git** | Used for cloning and managing contribution workflow. |
+| Optional IDE | VS Code / JetBrains / etc. | Any editor with JavaScript + Python support works; not enforced. |
 
+---
 
- - members need to be able to login and update their own information
+## Repository Layout
 
+```
+CSIET-Member-Database/
+├── frontend/front/      # React + Vite source, Tailwind styling, linting configs
+├── backend/             # Placeholder for future API implementation
+├── database.py          # Sample MongoDB connection script (Python + pymongo)
+├── database/            # Placeholder for schema/migration assets
+├── devops/              # Placeholder for deployment/infrastructure automation
+├── node_modules/, package*.json  # Root-level Tailwind tooling (shared styles)
+```
 
- - security measures need to be taken to ensure that only students are able to input information. This prevents cyber attacks with querying etc.
+---
 
+## Frontend Setup & Commands
 
- - Companies need to be able to login to this page and search for students that may be of interest to them, access must be revokable and controlled
+1. **Clone the project**
+   ```sh
+   git clone <repo-url>
+   cd CSIET-Member-Database
+   ```
+2. **Install shared tooling (optional but keeps Tailwind versions aligned)**
+   ```sh
+   npm install
+   ```
+3. **Install frontend dependencies**
+   ```sh
+   cd frontend/front
+   npm install
+   ```
+4. **Run the Vite dev server**
+   ```sh
+   npm run dev
+   ```
+   - Default URL: `http://localhost:5173`
+   - Use `npm run build` for production output and `npm run preview` to test the built assets.
+5. **Lint the React codebase**
+   ```sh
+   npm run lint
+   ```
 
+---
 
- - CSIET branding needs to take a big role in the UI, UX will also need to be very polished and professional, lots of css going on here
+## Database & Backend Notes
 
+The backend and database layers are currently placeholders. To experiment with MongoDB connectivity:
 
- - There needs to be a landing page with information about CSIET, think contact info, mission statement, meeting times etc
+```sh
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+pip install pymongo
+export MONGO_URI="mongodb+srv://<user>:<pass>@cluster.mongodb.net/csiet"
+python database.py
+```
 
+- Replace the placeholder URI in `database.py` with a secure connection string (ideally via environment variables).
+- When the backend service is implemented under `backend/`, it will likely depend on the same MongoDB connection and Python or Node tooling described above.
 
- - There needs to be seperate login pages for students and companies, branding and marketing will be different for each of these use cases
+---
 
+## Next Steps for Contributors
 
- - the database should be kept clean, if we think 10 years out, we don't want people who are out of college to necessarily show up without having to search explicitly for them, like maybe a past members section that is seperate from current college students
+- Flesh out `backend/` with chosen framework (FastAPI, Express, etc.) and document its runtime/tooling requirements.
+- Define database schemas/migrations inside `database/`.
+- Expand `devops/` with infrastructure-as-code or deployment scripts (Docker, CI/CD).
 
-
-
-
-
-We have split group into a few roles, not strictly enforced, but general responsibilites
-
-
-
-
-
-Dejuan Carson & Michael Stewart - Frontend Design: implement React frontend with clear branding and ease of use
-
-
-Matthew Larsen - Database Engineering: design schemas and ensure reliable data acesss with ease of use 
-
-
-Bradley Alford - Backend Engineering: design routing for frontend access of database information
-
-
-Michael Stewart - DevOps & Integration: setup database, vercel(or other) hosting, frontend and backend integration, update guidelines as the club sees fit. 
-
-
-The plan is to have a rough draft in 4-6 weeks, though this project is not huge, we can make it very polished and fun to use, while building a real world application to be deployed at a large scale. 
-
-
-
-
-
-Updates & User guidelines 
-
-
--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
-// to be added during development
+With the tools listed above installed, you can run every component currently present in the repo and are ready to iterate on the remaining layers. Let the maintainers know if additional stack details would help! 
