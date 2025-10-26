@@ -41,15 +41,20 @@ Member-focused web app that lets CSIET students manage their profiles while part
    cd ../../backend
    npm install
    ```
-5. **Copy environment templates (see below) and seed the default member**
+5. **Copy environment templates if you need to reset them (dev-ready `.env` files are already checked in)**
    ```sh
-   cp .env.example .env
+   cp backend/.env.example backend/.env   # optional reset
+   cp frontend/front/.env.example frontend/front/.env
+   ```
+6. **Seed the database with sample members + default login**
+   ```sh
+   cd backend
    npm run seed
    ```
-6. **Run the services**
+7. **Run the services**
    - Backend API: `npm run dev` from `backend` (listens on `http://localhost:4000`)
    - Frontend UI: `npm run dev` from `frontend/front` (proxy requests to backend)
-7. **Lint the React codebase**
+8. **Lint the React codebase**
    ```sh
    cd frontend/front
    npm run lint
@@ -64,15 +69,35 @@ Member-focused web app that lets CSIET students manage their profiles while part
 ```
 PORT=4000
 MONGO_URI=mongodb://localhost:27017/csiet
-JWT_SECRET=super-secret-key
+JWT_SECRET=local-dev-secret
 DEFAULT_MEMBER_EMAIL=member@example.com
 DEFAULT_MEMBER_PASSWORD=changeme123
 DEFAULT_MEMBER_NAME=Demo Member
+DEFAULT_ADMIN_EMAIL=admin@example.com
+DEFAULT_ADMIN_PASSWORD=adminpass123
+DEFAULT_ADMIN_NAME=Site Admin
 CLIENT_ORIGIN=http://localhost:5173
 ```
 
-- `npm run seed` inserts the default member using the credentials above (update before seeding in production).
+- Already included for local development; adjust values (especially `JWT_SECRET` + `MONGO_URI`) before deploying.
+- The API now also checks `MONGODB_URI`, so managed Mongo providers that export that variable name will work without renaming.
+- `npm run seed` inserts the default login plus sample members populated with majors, years, interests, and resume links.
+- An admin user is seeded alongside members. Use `role: "admin"` when calling `/api/auth/login` (example below) to request that credential.
 - `CLIENT_ORIGIN` may contain a comma-separated list of allowed frontends for CORS.
+
+Example admin login request:
+
+```sh
+curl -X POST http://localhost:4000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@example.com","password":"adminpass123","role":"admin"}'
+```
+
+### Deploying on Vercel
+
+- **Backend (serverless API)**: point a Vercel project at the `backend/` directory. Vercel automatically builds `backend/api/index.js` as a Node serverless function, so each request runs the existing Express app through `serverless-http`. Set `MONGO_URI`/`MONGODB_URI`, `JWT_SECRET`, and the default member/admin env vars inside the project’s Environment Variables tab, then run `npm run seed` locally against that URI to create accounts before first use.
+- **Frontend (Vite)**: create a second Vercel project rooted at `frontend/front/`. Use `npm run build` as the build command and `dist` as the output directory. Configure `VITE_API_BASE_URL` to your backend project URL plus `/api` (for example, `https://csiet-api.vercel.app/api`).
+- **Local parity**: `npm run dev` in `backend/` still spins up the Express server for local testing, while deployments reuse the same code path via the serverless handler, so behavior remains consistent across environments.
 
 ### Frontend (`frontend/front/.env`)
 
@@ -118,12 +143,28 @@ CSIET-Member-Database/
 | backend | `npm install` | Install Express/Mongoose dependencies. |
 | backend | `npm run dev` | Start the REST API with nodemon. |
 | backend | `npm run seed` | Insert the default member credential. |
+| backend | `npm run start` | Run the API without nodemon (production style). |
+| backend | `npm test` | Run the backend Vitest suite (mocked Mongo). |
 | `frontend/front` | `npm install` | Install React/Vite dependencies. |
 | `frontend/front` | `npm run dev` | Start Vite dev server with HMR. |
 | `frontend/front` | `npm run build` | Produce optimized production bundle. |
 | `frontend/front` | `npm run preview` | Serve the built assets for local QA. |
 | `frontend/front` | `npm run lint` | Apply ESLint rules (JS + React). |
 | repo root | `python database.py` | Verify MongoDB connectivity (requires `pymongo` + configured URI). |
+
+---
+
+## API Overview
+
+| Method | Route | Description |
+| --- | --- | --- |
+| `POST` | `/api/auth/login` | Returns a JWT + user payload for valid member/company credentials. |
+| `GET` | `/api/members` | Authenticated list of member profiles (name, major, year, interests, resume URL). |
+| `GET` | `/api/members/me` | Returns the logged-in member's profile for editing. |
+| `PUT` | `/api/members/me` | Allows members to update their name, major, year, interests, and resume link. |
+
+- All `/api/members/*` routes require an `Authorization: Bearer <token>` header using the JWT from the login response.
+- Use `npm run seed` to bootstrap both the default login (`member@example.com` / `changeme123`) and several sample members that immediately show up inside the dropdown directory UI.
 
 ---
 

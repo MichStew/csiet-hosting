@@ -3,9 +3,9 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { User } from '../models/User.js';
 
-const router = express.Router();
+export const router = express.Router();
 
-router.post('/login', async (req, res) => {
+export async function loginHandler(req, res) {
   const { email, password, role = 'member' } = req.body || {};
 
   if (!email || !password) {
@@ -32,7 +32,7 @@ router.post('/login', async (req, res) => {
       { expiresIn: '1h' }
     );
 
-    return res.json({
+    return res.status(200).json({
       token,
       user: user.toSafeObject(),
     });
@@ -40,6 +40,8 @@ router.post('/login', async (req, res) => {
     console.error('Login error:', err);
     return res.status(500).json({ message: 'Internal server error.' });
   }
-});
+}
+
+router.post('/login', loginHandler);
 
 export default router;

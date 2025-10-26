@@ -17,6 +17,10 @@ export default function App() {
     setCurrentPage('member-directory');
   };
 
+  const handleProfileUpdate = (updatedUser) => {
+    setAuthState((prev) => ({ ...prev, user: updatedUser }));
+  };
+
   const handleLogout = () => {
     setAuthState({ token: null, user: null });
     setCurrentPage('home');
@@ -54,7 +58,8 @@ export default function App() {
         return (
           <MemberInfo
             onNavigate={handleNavigate}
-            user={authState.user}
+            auth={authState}
+            onProfileUpdate={handleProfileUpdate}
           />
         );
       default:

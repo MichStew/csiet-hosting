@@ -24,6 +24,22 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    major: {
+      type: String,
+      trim: true,
+    },
+    year: {
+      type: String,
+      trim: true,
+    },
+    interests: {
+      type: [String],
+      default: [],
+    },
+    resumeUrl: {
+      type: String,
+      trim: true,
+    },
   },
   { timestamps: true }
 );
@@ -34,6 +50,10 @@ userSchema.methods.toSafeObject = function toSafeObject() {
     name: this.name,
     email: this.email,
     role: this.role,
+    major: this.major || '',
+    year: this.year || '',
+    interests: this.interests || [],
+    resumeUrl: this.resumeUrl || '',
   };
 };
 

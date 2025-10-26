@@ -1,34 +1,23 @@
-import express from 'express';
-import cors from 'cors';
 import dotenv from 'dotenv';
 import { connectDB } from './config/db.js';
-import authRoutes from './routes/auth.js';
+import { app } from './app.js';
 
 dotenv.config();
 
 const PORT = process.env.PORT || 4000;
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/csiet';
+const MONGO_URI =
+  process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://localhost:27017/csiet';
 
-const app = express();
-app.use(
-  cors({
-    origin: process.env.CLIENT_ORIGIN?.split(',').map((origin) => origin.trim()) || '*',
-    credentials: true,
-  })
-);
-app.use(express.json());
-
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', uptime: process.uptime() });
-});
-
-app.use('/api/auth', authRoutes);
-
-const start = async () => {
-  await connectDB(MONGO_URI);
-  app.listen(PORT, () => {
-    console.log(`🚀 Backend listening on http://localhost:${PORT}`);
+export async function startServer(port = PORT, mongoUri = MONGO_URI) {
+  await connectDB(mongoUri);
+  return app.listen(port, () => {
+    console.log(`🚀 Backend listening on http://localhost:${port}`);
   });
-};
+}
 
-start();
+if (process.env.NODE_ENV !== 'test') {
+  startServer().catch((err) => {
+    console.error('❌ Failed to start backend server:', err);
+    process.exit(1);
+  });
+}
