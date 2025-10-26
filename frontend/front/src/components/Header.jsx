@@ -24,7 +24,7 @@ export default function Header({ onNavigate }) {
               className="border-2 bg-white hover:bg-gray-50"
               style={{ borderColor: '#733635', color: '#733635' }}
             >
-              Partner Login
+              Partner Logon
             </Button>
             <Button 
               variant="outline"
