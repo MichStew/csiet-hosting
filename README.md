@@ -1,12 +1,5 @@
 # CSIET Member Database
-// add comment to make an issue
-Modern full-stack project for tracking CSIET student members, employer access, and club-facing landing pages. The repository currently provides the React/Vite frontend, an outline for backend and database layers, and starter tooling.
 
----
-
-## Required Tools & Services
-
-<<<<<<< HEAD
 | Purpose | Tool | Notes |
 | --- | --- | --- |
 | JavaScript tooling | **Node.js 18+** (bundled `npm`) | Needed for Vite dev server, React build, linting, and Tailwind tooling in both the repo root and `frontend/front`. |
