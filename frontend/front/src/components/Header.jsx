@@ -10,7 +10,7 @@ export default function Header({ onNavigate, isAuthenticated, onLogout, user }) 
             className="flex items-center gap-3 hover:opacity-80 transition-opacity"
           >
             <img
-              src="null"
+              src="/logo.png"
               alt="CSIET Logo"
               className="h-12 w-12 rounded-full object-cover"
             />

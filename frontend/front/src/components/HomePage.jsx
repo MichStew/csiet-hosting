@@ -4,65 +4,68 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 
 export default function HomePage({ onNavigate, isAuthenticated }) {
   const partners = [
-    { name: 'Microsoft', logo: 'https://via.placeholder.com/150x80/733635/FFFFFF?text=Microsoft' },
-    { name: 'IBM', logo: 'https://via.placeholder.com/150x80/733635/FFFFFF?text=IBM' },
+    { logo: '/nucor.png' },
+    { logo: 'higherlevelscrop.png' }
+    
+    /*
     { name: 'Salesforce', logo: 'https://via.placeholder.com/150x80/733635/FFFFFF?text=Salesforce' },
     { name: 'Oracle', logo: 'https://via.placeholder.com/150x80/733635/FFFFFF?text=Oracle' },
     { name: 'SAP', logo: 'https://via.placeholder.com/150x80/733635/FFFFFF?text=SAP' },
     { name: 'Cisco', logo: 'https://via.placeholder.com/150x80/733635/FFFFFF?text=Cisco' },
     { name: 'Dell', logo: 'https://via.placeholder.com/150x80/733635/FFFFFF?text=Dell' },
-    { name: 'HP Enterprise', logo: 'https://via.placeholder.com/150x80/733635/FFFFFF?text=HPE' },
+    { name: 'HP Enterprise', logo: 'https://via.placeholder.com/150x80/733635/FFFFFF?text=HPE' }, */
   ];
+  
 /*can be changed, useful to have everything in one place */
   const galleryImages = [
-    '',
-    '',
-    '',
-    '',
-    '',
-    ''
+    'finch.png',
+    'prauner.png',
+    'frick.png',
+    'first.png'
   ];
 
   const pastMeetings = [
     {
       title: 'Meet The Team',
       date: 'October 15, 2025',
-      description: 'Learn how to effectively communicate technical solutions to non-technical stakeholders. Microsoft sales engineers shared their expertise in translating complex cloud architectures into business value.',
-      company: 'Microsoft'
+      description: 'An introduction on CSIET. The exceutive members got up and spoke about our vision for this club. Who we are, what we want to achieve, and how we want to do it. After our introduction we broke into groups with icebreakers to network, and finally ended the night with some ice cream. ',
+      company: 'CSIET Exec'
     },
     {
-      title: 'Networking Night with Industry Leaders',
+      title: 'Where Sales Engineering Can Take You',
       date: 'September 28, 2025',
-      description: 'An evening of networking with sales engineers from top tech companies. Members had the opportunity to practice their elevator pitches and receive feedback from professionals.',
-      company: 'Various Companies'
+      description: 'A prominent figure in the columbia area and owner of steel hands brewery came and spoke to our members about the success that sales engineering can bring you. His experience ',
+      company: 'Darryl Frick'
     },
     {
-      title: 'Solution Design Challenge',
+      title: 'Sales Engineering @ Nucor Vulcraft',
       date: 'September 10, 2025',
       description: 'Teams competed to design the best technical solution for a real-world business problem. Judges from IBM and Salesforce evaluated presentations on both technical merit and business value.',
-      company: 'IBM & Salesforce'
+      company: 'Brandon Prauner'
     },
     {
-      title: 'Career Panel: Paths in Sales Engineering',
+      title: 'How To: Land Tech Sales Jobs',
       date: 'August 30, 2025',
       description: 'A panel of USC alumni working in sales engineering discussed their career journeys, daily responsibilities, and tips for landing your first role in the field.',
-      company: 'Alumni Panel'
-    },
+      company: 'Eric Finch'
+    }/*
     {
       title: 'Welcome Back Meeting',
       date: 'August 20, 2025',
       description: 'Kicked off the fall semester with team building activities, club introductions, and an overview of exciting events planned for the year. New members learned about CSIET\'s mission and goals.',
-      company: 'CSIET'
-    }
+      company: ''
+    } */
   ];
+  /*const cardBackground = '#f9f0e8'; */
 
   return (
     <div>
+    
       {/* Partners Section */}
       <section className="py-16">
         <div className="container mx-auto px-4">
           <h2 className="text-center mb-12" style={{ color: '#733635' }}>Our Company Partners</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {partners.map((partner, index) => (
               <div key={index} className="flex flex-col items-center gap-4 p-6 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
                 <img
@@ -108,7 +111,7 @@ export default function HomePage({ onNavigate, isAuthenticated }) {
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
-            <Card className="border-2" style={{ borderColor: '#733635' }}>
+            <Card className="border-2" style={{ borderColor: '#733635'}}>
               <CardHeader>
                 <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl" style={{ backgroundColor: '#ebe3d5' }}>
                   🎯
@@ -120,7 +123,7 @@ export default function HomePage({ onNavigate, isAuthenticated }) {
               </CardContent>
             </Card>
 
-            <Card className="border-2" style={{ borderColor: '#733635' }}>
+            <Card className="border-2" style={{ borderColor: '#733635'}}>
               <CardHeader>
                 <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl" style={{ backgroundColor: '#ebe3d5' }}>
                   💼
@@ -151,7 +154,7 @@ export default function HomePage({ onNavigate, isAuthenticated }) {
       <section className="py-16">
         <div className="container mx-auto px-4">
           <h2 className="text-center mb-12" style={{ color: '#733635' }}>Meeting Gallery</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
             {galleryImages.map((image, index) => (
               <div key={index} className="overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-shadow group">
                 <img
@@ -171,7 +174,11 @@ export default function HomePage({ onNavigate, isAuthenticated }) {
           <h2 className="text-center mb-12" style={{ color: '#733635' }}>Past Meetings</h2>
           <div className="space-y-6">
             {pastMeetings.map((meeting, index) => (
-              <Card key={index} className="border-l-4" style={{ borderLeftColor: '#733635' }}>
+              <Card
+                key={index}
+                className="border-l-4"
+                style={{ borderLeftColor: '#733635'}}
+              >
                 <CardHeader>
                   <CardTitle style={{ color: '#733635' }}>{meeting.title}</CardTitle>
                   <CardDescription className="flex items-center gap-2">
