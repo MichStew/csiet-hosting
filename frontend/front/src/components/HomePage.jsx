@@ -3,8 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 
 export default function HomePage({ onNavigate, isAuthenticated }) {
   const partners = [
-    { logo: '/nucor.png', name: 'Nucor' },
-    { logo: '/higherlevelscrop.png', name: 'Higher Levels' },
+    { logo: '/nucor.png'},
+    { logo: '/higherlevelscrop.png'},
   ];
 
   const galleryImages = ['/finch.png', '/prauner.png', '/frick.png', '/first.png'];
@@ -130,9 +130,6 @@ export default function HomePage({ onNavigate, isAuthenticated }) {
                   </div>
                 ))}
               </div>
-              <p className="mt-6 text-sm text-white/80">
-                Scroll below for the full gallery and see how members collaborate each week.
-              </p>
             </div>
           </div>
         </div>
@@ -145,7 +142,7 @@ export default function HomePage({ onNavigate, isAuthenticated }) {
             Trusted relationships with industry leaders give members direct access to recruiting pipelines and
             real-world problem statements.
           </p>
-          <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+          <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2">
             {partners.map((partner, index) => (
               <div
                 key={`${partner.logo}-${index}`}
@@ -238,9 +235,6 @@ export default function HomePage({ onNavigate, isAuthenticated }) {
       <section className="py-16">
         <div className="container mx-auto px-4">
           <h2 className="text-center text-2xl font-semibold text-[#733635]">Meeting Gallery</h2>
-          <p className="mx-auto mt-3 max-w-2xl text-center text-gray-600">
-            Swipe through on mobile or browse in rows on desktop to see members collaborating in action.
-          </p>
           <div className="mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4 md:grid md:grid-cols-2 md:gap-6 md:overflow-visible md:snap-none">
             {galleryImages.map((image, index) => (
               <div key={image} className="min-w-[80%] snap-center md:min-w-0">
