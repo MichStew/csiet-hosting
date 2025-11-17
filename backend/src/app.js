@@ -24,6 +24,13 @@ export function createApp() {
 
   app.use(express.json());
 
+  app.get('/', (req, res) => {
+    res.json({
+      status: 'ok',
+      message: 'CSIET backend is running. Use /api routes for data access.',
+    });
+  });
+
   app.get('/health', (req, res) => {
     res.json({ status: 'ok', uptime: process.uptime() });
   });
