@@ -4,10 +4,11 @@ import { Input } from './ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Label } from './ui/label';
 import { ArrowLeft } from 'lucide-react';
+import { getApiBaseUrl } from '../utils/api';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
+const API_BASE_URL = getApiBaseUrl();
 
-export default function MemberLogin({ onNavigate, onLoginSuccess }) {
+export default function MemberLogin({ onNavigate, onLoginSuccess, notice = '' }) {
   const [formValues, setFormValues] = useState({ email: '', password: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -74,6 +75,11 @@ export default function MemberLogin({ onNavigate, onLoginSuccess }) {
               <CardDescription>Access your CSIET member portal</CardDescription>
             </CardHeader>
             <CardContent>
+              {notice && (
+                <div className="mb-4 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+                  {notice}
+                </div>
+              )}
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="member-email">Email</Label>

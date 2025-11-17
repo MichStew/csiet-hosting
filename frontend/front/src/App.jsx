@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Header from './components/Header';
 import HomePage from './components/HomePage';
 import CompanyLogin from './components/CompanyLogin';
@@ -6,24 +6,73 @@ import MemberLogin from './components/MemberLogin';
 import ContactUs from './components/ContactUs';
 import MemberInfo from './components/MemberInfo';
 
+const AUTH_STORAGE_KEY = 'csiet.auth';
+
 export default function App() {
   const [currentPage, setCurrentPage] = useState('home');
-  const [authState, setAuthState] = useState({ token: null, user: null });
+  const createEmptyAuthState = () => ({ token: null, user: null });
+  const [authState, setAuthState] = useState(() => {
+    if (typeof window === 'undefined') {
+      return createEmptyAuthState();
+    }
+    try {
+      const stored = window.localStorage.getItem(AUTH_STORAGE_KEY);
+      if (!stored) {
+        return createEmptyAuthState();
+      }
+      const parsed = JSON.parse(stored);
+      if (parsed?.token) {
+        return parsed;
+      }
+    } catch (err) {
+      console.warn('Unable to parse stored auth state:', err);
+    }
+    return createEmptyAuthState();
+  });
+  const [sessionNotice, setSessionNotice] = useState('');
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    if (authState?.token) {
+      window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authState));
+    } else {
+      window.localStorage.removeItem(AUTH_STORAGE_KEY);
+    }
+  }, [authState]);
 
   const isAuthenticated = Boolean(authState.token);
 
   const handleLoginSuccess = (authPayload) => {
+    setSessionNotice('');
     setAuthState(authPayload);
     setCurrentPage('member-directory');
   };
 
   const handleProfileUpdate = (updatedUser) => {
-    setAuthState((prev) => ({ ...prev, user: updatedUser }));
+    setAuthState((prev) => {
+      if (!prev?.token) {
+        return { token: null, user: updatedUser };
+      }
+      return { ...prev, user: updatedUser };
+    });
   };
 
-  const handleLogout = () => {
-    setAuthState({ token: null, user: null });
-    setCurrentPage('home');
+  const resetAuthState = () => {
+    setAuthState(createEmptyAuthState());
+  };
+
+  const handleLogout = (redirectPage = 'home') => {
+    resetAuthState();
+    setSessionNotice('');
+    setCurrentPage(redirectPage);
+  };
+
+  const handleSessionExpired = (message = 'Your session expired. Please log in again.') => {
+    resetAuthState();
+    setSessionNotice(message);
+    setCurrentPage('member-login');
   };
 
   const handleNavigate = (destination) => {
@@ -50,6 +99,7 @@ export default function App() {
           <MemberLogin
             onNavigate={handleNavigate}
             onLoginSuccess={handleLoginSuccess}
+            notice={sessionNotice}
           />
         );
       case 'contact':
@@ -60,6 +110,7 @@ export default function App() {
             onNavigate={handleNavigate}
             auth={authState}
             onProfileUpdate={handleProfileUpdate}
+            onSessionExpired={handleSessionExpired}
           />
         );
       default:

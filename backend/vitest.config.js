@@ -4,5 +4,8 @@ export default defineConfig({
   test: {
     environment: 'node',
     setupFiles: ['./tests/setup.js'],
+    pool: 'threads',
+    maxThreads: 1,
+    minThreads: 1,
   },
 });

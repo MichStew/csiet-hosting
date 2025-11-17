@@ -5,11 +5,13 @@ import { Textarea } from './ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { ArrowLeft, ChevronsUpDown, FileText, Loader2, Save, Search } from 'lucide-react';
+import { getApiBaseUrl } from '../utils/api';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
+const API_BASE_URL = getApiBaseUrl();
 const YEAR_OPTIONS = ['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate'];
+const UNAUTHORIZED_STATUSES = new Set([401, 403]);
 
-export default function MemberInfo({ onNavigate, auth, onProfileUpdate }) {
+export default function MemberInfo({ onNavigate, auth, onProfileUpdate, onSessionExpired }) {
   const token = auth?.token;
   const user = auth?.user;
 
@@ -29,6 +31,13 @@ export default function MemberInfo({ onNavigate, auth, onProfileUpdate }) {
   const [savingProfile, setSavingProfile] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const dropdownRef = useRef(null);
+  const defaultSessionMessage = 'Your session expired. Please log in again.';
+
+  const handleExpiredSession = (message) => {
+    const readableMessage = message || defaultSessionMessage;
+    setErrorMessage(readableMessage);
+    onSessionExpired?.(readableMessage);
+  };
 
   useEffect(() => {
     if (!token) {
@@ -52,6 +61,17 @@ export default function MemberInfo({ onNavigate, auth, onProfileUpdate }) {
             },
           }),
         ]);
+
+        const membersUnauthorized = UNAUTHORIZED_STATUSES.has(membersRes.status);
+        const meUnauthorized = UNAUTHORIZED_STATUSES.has(meRes.status);
+
+        if (membersUnauthorized || meUnauthorized) {
+          const unauthorizedBody = membersUnauthorized
+            ? await membersRes.json().catch(() => ({}))
+            : await meRes.json().catch(() => ({}));
+          handleExpiredSession(unauthorizedBody?.message);
+          return;
+        }
 
         if (!membersRes.ok) {
           const body = await membersRes.json().catch(() => ({}));
@@ -172,6 +192,15 @@ export default function MemberInfo({ onNavigate, auth, onProfileUpdate }) {
       });
 
       const data = await response.json().catch(() => ({}));
+
+      if (UNAUTHORIZED_STATUSES.has(response.status)) {
+        handleExpiredSession(data?.message);
+        setProfileStatus({
+          type: 'error',
+          message: data?.message || defaultSessionMessage,
+        });
+        return;
+      }
 
       if (!response.ok) {
         throw new Error(data?.message || 'Unable to save profile.');

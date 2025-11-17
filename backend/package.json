@@ -21,7 +21,6 @@
     "serverless-http": "^3.2.0"
   },
   "devDependencies": {
-    "mockingoose": "^2.16.2",
     "nodemon": "^3.1.7",
     "vitest": "^4.0.3"
   }

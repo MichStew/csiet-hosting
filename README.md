@@ -107,6 +107,8 @@ VITE_API_BASE_URL=http://localhost:4000
 
 - The member login form posts to `${VITE_API_BASE_URL}/api/auth/login`.
 - When deploying, point this value to the hosted backend URL.
+- Login state now persists across refreshes via `localStorage` (`csiet.auth`). Logging out or an expired token clears it and sends members back to the login screen.
+- When `VITE_API_BASE_URL` is omitted in production, the frontend automatically falls back to the current window origin (so `/api/*` requests stay on the same Vercel host). Set it explicitly if your API is deployed to a different hostname.
 
 ### Python utilities
 

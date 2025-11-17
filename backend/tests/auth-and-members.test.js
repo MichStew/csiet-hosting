@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
-import mockingoose from 'mockingoose';
 import jwt from 'jsonwebtoken';
 import { loginHandler } from '../src/routes/auth.js';
 import {
@@ -28,6 +27,10 @@ function buildMember(overrides = {}) {
   };
 }
 
+function createUserDoc(overrides = {}) {
+  return new User(buildMember(overrides));
+}
+
 function createMockResponse() {
   const res = {
     statusCode: 200,
@@ -52,14 +55,20 @@ function createRequest(overrides = {}) {
   };
 }
 
+function mockSortedFind(result) {
+  return {
+    sort: vi.fn().mockResolvedValue(result),
+  };
+}
+
 beforeEach(() => {
-  mockingoose.resetAll();
+  vi.restoreAllMocks();
 });
 
 describe('login handler', () => {
   it('issues a JWT for valid credentials', async () => {
-    const memberDoc = buildMember({ email: 'login@example.com', name: 'Login User' });
-    mockingoose(User).toReturn(memberDoc, 'findOne');
+    const memberDoc = createUserDoc({ email: 'login@example.com', name: 'Login User' });
+    vi.spyOn(User, 'findOne').mockResolvedValue(memberDoc);
 
     const req = createRequest({
       body: { email: 'login@example.com', password: 'Password123!' },
@@ -77,7 +86,7 @@ describe('login handler', () => {
   });
 
   it('rejects unknown users', async () => {
-    mockingoose(User).toReturn(null, 'findOne');
+    vi.spyOn(User, 'findOne').mockResolvedValue(null);
 
     const req = createRequest({
       body: { email: 'missing@example.com', password: 'Password123!' },
@@ -91,8 +100,8 @@ describe('login handler', () => {
   });
 
   it('authenticates admins when role is provided', async () => {
-    const adminDoc = buildMember({ email: 'admin@example.com', role: 'admin' });
-    mockingoose(User).toReturn(adminDoc, 'findOne');
+    const adminDoc = createUserDoc({ email: 'admin@example.com', role: 'admin' });
+    vi.spyOn(User, 'findOne').mockResolvedValue(adminDoc);
 
     const req = createRequest({
       body: { email: 'admin@example.com', password: 'Password123!', role: 'admin' },
@@ -108,8 +117,8 @@ describe('login handler', () => {
 
 describe('authenticate middleware', () => {
   it('attaches the member from a valid token', async () => {
-    const memberDoc = buildMember({ email: 'auth@example.com' });
-    mockingoose(User).toReturn(memberDoc, 'findOne');
+    const memberDoc = createUserDoc({ email: 'auth@example.com' });
+    vi.spyOn(User, 'findById').mockResolvedValue(memberDoc);
     const token = jwt.sign(
       { sub: memberDoc._id.toString(), role: memberDoc.role },
       process.env.JWT_SECRET || 'dev-secret'
@@ -143,10 +152,10 @@ describe('authenticate middleware', () => {
 describe('member handlers', () => {
   it('lists member profiles in a safe shape', async () => {
     const members = [
-      buildMember({ email: 'alice@example.com', name: 'Alice' }),
-      buildMember({ email: 'bob@example.com', name: 'Bob' }),
+      createUserDoc({ email: 'alice@example.com', name: 'Alice' }),
+      createUserDoc({ email: 'bob@example.com', name: 'Bob' }),
     ];
-    mockingoose(User).toReturn(members, 'find');
+    vi.spyOn(User, 'find').mockReturnValue(mockSortedFind(members));
 
     const res = createMockResponse();
     await listMembersHandler(createRequest({ user: members[0] }), res);
@@ -157,8 +166,8 @@ describe('member handlers', () => {
   });
 
   it('returns the authenticated profile', () => {
-    const memberDoc = buildMember({ email: 'me@example.com' });
-    const req = createRequest({ user: new User(memberDoc) });
+    const memberDoc = createUserDoc({ email: 'me@example.com' });
+    const req = createRequest({ user: memberDoc });
     const res = createMockResponse();
 
     getProfileHandler(req, res);
@@ -168,18 +177,8 @@ describe('member handlers', () => {
   });
 
   it('updates a profile and trims optional fields', async () => {
-    const memberDoc = buildMember({ email: 'edit@example.com', name: 'Original Name' });
-    const reqUser = new User(memberDoc);
-    const updatedDoc = {
-      ...memberDoc,
-      name: 'Updated Name',
-      major: 'Data Science',
-      year: 'Junior',
-      interests: ['AI', 'Robotics', 'Leadership'],
-      resumeUrl: 'https://example.com/new.pdf',
-    };
-
-    mockingoose(User).toReturn(updatedDoc, 'save');
+    const reqUser = createUserDoc({ email: 'edit@example.com', name: 'Original Name' });
+    vi.spyOn(reqUser, 'save').mockResolvedValue(reqUser);
 
     const req = createRequest({
       user: reqUser,
@@ -206,9 +205,9 @@ describe('member handlers', () => {
   });
 
   it('validates academic year choices', async () => {
-    const memberDoc = buildMember({ email: 'invalid@example.com' });
+    const memberDoc = createUserDoc({ email: 'invalid@example.com' });
     const req = createRequest({
-      user: new User(memberDoc),
+      user: memberDoc,
       body: { name: 'Still Valid', year: 'NotAYear' },
     });
     const res = createMockResponse();
