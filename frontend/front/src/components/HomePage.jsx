@@ -9,7 +9,7 @@ export default function HomePage({ onNavigate, isAuthenticated }) {
     { logo: '/higherlevel.png'},
   ];
 
-  const galleryImages = ['/finch.png', '/prauner.png', '/frick.png', '/first.png'];
+  const galleryImages = ['/finch.png', '/prauner.png', '/frick.png', '/first.png','/one2.png','/table.png','/one.png'];
 
   const pastMeetings = [
     {
