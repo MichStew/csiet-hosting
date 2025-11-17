@@ -6,7 +6,7 @@ export default function HomePage({ onNavigate, isAuthenticated }) {
 {/* partners constant, mapped like below says */}
   const partners = [
     { logo: '/nucor.png'},
-    { logo: '/higherlevels.png'},
+    { logo: '/higherlevel.png'},
   ];
 
   const galleryImages = ['/finch.png', '/prauner.png', '/frick.png', '/first.png'];
