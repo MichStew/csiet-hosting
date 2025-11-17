@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 
 export default function HomePage({ onNavigate, isAuthenticated }) {
 
-// partners constant, mapped like below says 
+{/* partners constant, mapped like below says */}
   const partners = [
     { logo: '/nucor.png'},
     { logo: '/higherlevels.png'},
@@ -151,7 +151,7 @@ export default function HomePage({ onNavigate, isAuthenticated }) {
                 className="flex h-32 flex-col items-center justify-center gap-4 rounded-2xl bg-white p-4 text-center shadow-sm transition-shadow hover:shadow-md"
               >
               
-              // section for the company partners, based on a map declared above 
+              {/* section for the company partners, based on a map declared above */}
                 <img
                   src={partner.logo}
                   alt={partner.name ? `${partner.name} logo` : 'Company partner logo'}
