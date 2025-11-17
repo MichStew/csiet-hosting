@@ -2,9 +2,11 @@ import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 
 export default function HomePage({ onNavigate, isAuthenticated }) {
+
+// partners constant, mapped like below says 
   const partners = [
     { logo: '/nucor.png'},
-    { logo: '/higherlevelscrop.png'},
+    { logo: '/higherlevels.png'},
   ];
 
   const galleryImages = ['/finch.png', '/prauner.png', '/frick.png', '/first.png'];
@@ -35,7 +37,7 @@ export default function HomePage({ onNavigate, isAuthenticated }) {
       title: 'How To: Land Tech Sales Jobs',
       date: 'November 4th, 2025',
       description:
-        'to be written',
+        'A successful Tech Salesman, Auburn Engineering Graduate, and Co-Founder of Higher Levels, Eric Finch came and spoke to CSIET about landing sought after jobs. The conversation started out by learning abou  ',
       company: 'Eric Finch',
     },
   ];
@@ -148,6 +150,8 @@ export default function HomePage({ onNavigate, isAuthenticated }) {
                 key={`${partner.logo}-${index}`}
                 className="flex h-32 flex-col items-center justify-center gap-4 rounded-2xl bg-white p-4 text-center shadow-sm transition-shadow hover:shadow-md"
               >
+              
+              // section for the company partners, based on a map declared above 
                 <img
                   src={partner.logo}
                   alt={partner.name ? `${partner.name} logo` : 'Company partner logo'}
