@@ -2,8 +2,7 @@ import serverless from 'serverless-http';
 import { app } from '../src/app.js';
 import { connectDB } from '../src/config/db.js';
 
-const MONGO_URI =
-  process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://localhost:27017/csiet';
+const MONGO_URI = process.env.MONGODB_URI;
 
 const expressHandler = serverless(app);
 
