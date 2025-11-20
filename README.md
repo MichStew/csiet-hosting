@@ -14,7 +14,7 @@ Member-focused web app that lets CSIET students manage their profiles while part
 | Linting | **ESLint 9** with React/Refresh plugins | Ensures consistent code standards via `npm run lint` in `frontend/front`. |
 | Backend | **Express 4**, **Mongoose 8**, **jsonwebtoken**, **bcryptjs** | REST API (`backend/`) that authenticates users against MongoDB. |
 | Database | **MongoDB Atlas** (or self-hosted MongoDB) | Stores member/company login data accessed via Mongoose. |
-| Python runtime | **Python 3.10+** with `pip` | Needed to run `database.py` and any future backend scripts that integrate with MongoDB. |
+| DB smoke test | **Node.js + Mongoose script** | Run `node backend/scripts/check-db.js` to verify MongoDB connectivity with the same config as the backend. |
 | Version control | **Git** | Clone/push workflow and collaboration. |
 | Optional | IDE with JS + Python support (VS Code, WebStorm, etc.) | Helpful, but not mandated. |
 
@@ -110,15 +110,12 @@ VITE_API_BASE_URL=http://localhost:4000
 - Login state now persists across refreshes via `localStorage` (`csiet.auth`). Logging out or an expired token clears it and sends members back to the login screen.
 - When `VITE_API_BASE_URL` is omitted in production, the frontend automatically falls back to the current window origin (so `/api/*` requests stay on the same Vercel host). Set it explicitly if your API is deployed to a different hostname.
 
-### Python utilities
+### Database health check script
 
-- `database.py` still serves as a quick connectivity check for MongoDB via `pymongo`. Example usage:
+- `backend/scripts/check-db.js` verifies that the Mongo URI in `backend/.env` is reachable using the same Mongoose version as the API. Example usage:
   ```sh
-  python -m venv .venv
-  source .venv/bin/activate  # Windows: .venv\Scripts\activate
-  pip install pymongo
-  export MONGO_URI="mongodb+srv://<user>:<pass>@cluster.mongodb.net/csiet"
-  python database.py
+  cd backend
+  node scripts/check-db.js
   ```
 
 ---
@@ -129,7 +126,7 @@ VITE_API_BASE_URL=http://localhost:4000
 CSIET-Member-Database/
 ├── frontend/front/        # Vite + React app, Tailwind configs, ESLint setup
 ├── backend/               # Express + MongoDB API (auth routes, seeding scripts)
-├── database.py            # MongoDB connection smoke test using pymongo
+├── backend/scripts/       # Utility scripts (e.g., MongoDB connectivity check)
 ├── database/              # Placeholder for schema docs, seed data, migrations
 ├── devops/                # Placeholder for IaC, deployment scripts, CI/CD configs
 ├── node_modules/, package*.json  # Root-level shared tooling for Tailwind/PostCSS
@@ -152,21 +149,37 @@ CSIET-Member-Database/
 | `frontend/front` | `npm run build` | Produce optimized production bundle. |
 | `frontend/front` | `npm run preview` | Serve the built assets for local QA. |
 | `frontend/front` | `npm run lint` | Apply ESLint rules (JS + React). |
-| repo root | `python database.py` | Verify MongoDB connectivity (requires `pymongo` + configured URI). |
+| backend | `node scripts/check-db.js` | Smoke-test MongoDB connectivity using Mongoose + env config. |
 
 ---
 
 ## API Overview
 
-| Method | Route | Description |
-| --- | --- | --- |
-| `POST` | `/api/auth/login` | Returns a JWT + user payload for valid member/company credentials. |
-| `GET` | `/api/members` | Authenticated list of member profiles (name, major, year, interests, resume URL). |
-| `GET` | `/api/members/me` | Returns the logged-in member's profile for editing. |
-| `PUT` | `/api/members/me` | Allows members to update their name, major, year, interests, and resume link. |
+### Authentication Routes
 
-- All `/api/members/*` routes require an `Authorization: Bearer <token>` header using the JWT from the login response.
+| Method | Route | Description | Auth Required |
+| --- | --- | --- | --- |
+| `POST` | `/api/auth/login` | Returns a JWT + user payload for valid member/company credentials. | No |
+| `POST` | `/api/auth/register` | Register a new member account. Returns JWT + user payload. | No |
+
+### Member Routes
+
+| Method | Route | Description | Auth Required |
+| --- | --- | --- | --- |
+| `POST` | `/api/members` | Create a new member account (alternative to `/api/auth/register`). | No |
+| `GET` | `/api/members` | List all member profiles (name, major, year, interests, resume URL). | Yes |
+| `GET` | `/api/members/:id` | Get a specific member's profile by ID. | Yes |
+| `GET` | `/api/members/me` | Returns the logged-in member's profile. | Yes |
+| `PUT` | `/api/members/me` | Update your own profile (name, major, year, interests, resume link). | Yes |
+| `DELETE` | `/api/members/me` | Delete your own account. | Yes |
+| `DELETE` | `/api/members/:id` | Delete a member by ID (admin only). | Yes (Admin) |
+
+### Notes
+
+- All authenticated routes require an `Authorization: Bearer <token>` header using the JWT from the login/register response.
+- Admin-only routes require a user with `role: "admin"` in their JWT token.
 - Use `npm run seed` to bootstrap both the default login (`member@example.com` / `changeme123`) and several sample members that immediately show up inside the dropdown directory UI.
+- Valid year values: `Freshman`, `Sophomore`, `Junior`, `Senior`, `Graduate`.
 
 ---
 

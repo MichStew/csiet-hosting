@@ -42,6 +42,60 @@ export async function loginHandler(req, res) {
   }
 }
 
+export async function registerHandler(req, res) {
+  const { email, password, name, role = 'member', major, year, interests, resumeUrl } = req.body || {};
+
+  if (!email || !password || !name) {
+    return res.status(400).json({ message: 'Email, password, and name are required.' });
+  }
+
+  if (password.length < 6) {
+    return res.status(400).json({ message: 'Password must be at least 6 characters long.' });
+  }
+
+  try {
+    const normalizedEmail = email.toLowerCase().trim();
+    const existing = await User.findOne({ email: normalizedEmail, role });
+    if (existing) {
+      return res.status(409).json({ message: 'User with this email already exists.' });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    const user = await User.create({
+      email: normalizedEmail,
+      passwordHash,
+      name: name.trim(),
+      role,
+      major: major?.trim() || '',
+      year: year || '',
+      interests: Array.isArray(interests) ? interests.filter(Boolean) : [],
+      resumeUrl: resumeUrl?.trim() || '',
+    });
+
+    const token = jwt.sign(
+      {
+        sub: user._id.toString(),
+        role: user.role,
+      },
+      process.env.JWT_SECRET || 'dev-secret',
+      { expiresIn: '1h' }
+    );
+
+    return res.status(201).json({
+      token,
+      user: user.toSafeObject(),
+      message: 'Registration successful.',
+    });
+  } catch (err) {
+    console.error('Registration error:', err);
+    if (err.code === 11000) {
+      return res.status(409).json({ message: 'User with this email already exists.' });
+    }
+    return res.status(500).json({ message: 'Internal server error.' });
+  }
+}
+
 router.post('/login', loginHandler);
+router.post('/register', registerHandler);
 
 export default router;
