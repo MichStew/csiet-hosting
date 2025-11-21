@@ -3,6 +3,7 @@ import Header from './components/Header';
 import HomePage from './components/HomePage';
 import CompanyLogin from './components/CompanyLogin';
 import MemberLogin from './components/MemberLogin';
+import MemberRegister from './components/MemberRegister';
 import ContactUs from './components/ContactUs';
 import MemberInfo from './components/MemberInfo';
 
@@ -100,6 +101,13 @@ export default function App() {
             onNavigate={handleNavigate}
             onLoginSuccess={handleLoginSuccess}
             notice={sessionNotice}
+          />
+        );
+      case 'member-register':
+        return (
+          <MemberRegister
+            onNavigate={handleNavigate}
+            onRegisterSuccess={handleLoginSuccess}
           />
         );
       case 'contact':

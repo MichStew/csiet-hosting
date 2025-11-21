@@ -72,6 +72,8 @@ export async function registerHandler(req, res) {
       resumeUrl: resumeUrl?.trim() || '',
     });
 
+    console.log(`✅ New ${role} registered: ${user.email} (ID: ${user._id})`);
+
     const token = jwt.sign(
       {
         sub: user._id.toString(),

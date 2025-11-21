@@ -118,6 +118,16 @@ export default function MemberLogin({ onNavigate, onLoginSuccess, notice = '' })
                 >
                   {isSubmitting ? 'Signing in…' : 'Login'}
                 </Button>
+                <div className="mt-4 text-center text-sm">
+                  <span className="text-gray-600">No account? </span>
+                  <button
+                    type="button"
+                    onClick={() => onNavigate('member-register')}
+                    className="text-blue-600 hover:text-blue-800 underline font-medium"
+                  >
+                    Create one here
+                  </button>
+                </div>
               </form>
             </CardContent>
           </Card>
