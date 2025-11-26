@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Header from './components/Header';
 import HomePage from './components/HomePage';
 import CompanyLogin from './components/CompanyLogin';
+import CompanyRegister from './components/CompanyRegister';
 import MemberLogin from './components/MemberLogin';
 import MemberRegister from './components/MemberRegister';
 import ContactUs from './components/ContactUs';
@@ -94,7 +95,20 @@ export default function App() {
           />
         );
       case 'company-login':
-        return <CompanyLogin onNavigate={handleNavigate} />;
+        return (
+          <CompanyLogin
+            onNavigate={handleNavigate}
+            onLoginSuccess={handleLoginSuccess}
+            notice={sessionNotice}
+          />
+        );
+      case 'company-register':
+        return (
+          <CompanyRegister
+            onNavigate={handleNavigate}
+            onRegisterSuccess={handleLoginSuccess}
+          />
+        );
       case 'member-login':
         return (
           <MemberLogin

@@ -43,14 +43,25 @@ export async function loginHandler(req, res) {
 }
 
 export async function registerHandler(req, res) {
-  const { email, password, name, role = 'member', major, year, interests, resumeUrl } = req.body || {};
+  const { email, password, name, role = 'member', major, year, interests, resumeUrl, employeeName, phone } = req.body || {};
 
   if (!email || !password || !name) {
     return res.status(400).json({ message: 'Email, password, and name are required.' });
   }
 
+  // Require employee name for company registrations
+  if (role === 'company' && !employeeName) {
+    return res.status(400).json({ message: 'Employee name is required for company registrations.' });
+  }
+
   if (password.length < 6) {
     return res.status(400).json({ message: 'Password must be at least 6 characters long.' });
+  }
+
+  // Validate role
+  const validRoles = ['member', 'company', 'admin'];
+  if (!validRoles.includes(role)) {
+    return res.status(400).json({ message: `Role must be one of: ${validRoles.join(', ')}` });
   }
 
   try {
@@ -70,6 +81,8 @@ export async function registerHandler(req, res) {
       year: year || '',
       interests: Array.isArray(interests) ? interests.filter(Boolean) : [],
       resumeUrl: resumeUrl?.trim() || '',
+      employeeName: employeeName?.trim() || '',
+      phone: phone?.trim() || '',
     });
 
     console.log(`✅ New ${role} registered: ${user.email} (ID: ${user._id})`);

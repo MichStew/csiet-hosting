@@ -40,6 +40,14 @@ const userSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    employeeName: {
+      type: String,
+      trim: true,
+    },
+    phone: {
+      type: String,
+      trim: true,
+    },
   },
   { timestamps: true }
 );
@@ -54,6 +62,8 @@ userSchema.methods.toSafeObject = function toSafeObject() {
     year: this.year || '',
     interests: this.interests || [],
     resumeUrl: this.resumeUrl || '',
+    employeeName: this.employeeName || '',
+    phone: this.phone || '',
   };
 };
 

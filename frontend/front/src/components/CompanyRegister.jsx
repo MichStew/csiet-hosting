@@ -5,28 +5,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Label } from './ui/label';
 import { ArrowLeft } from 'lucide-react';
 import { getApiBaseUrl } from '../utils/api';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from './ui/select';
 
 const API_BASE_URL = getApiBaseUrl();
 
-const ALLOWED_YEARS = ['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate'];
-
-export default function MemberRegister({ onNavigate, onRegisterSuccess }) {
+export default function CompanyRegister({ onNavigate, onRegisterSuccess }) {
   const [formValues, setFormValues] = useState({
     email: '',
     password: '',
     confirmPassword: '',
     name: '',
-    major: '',
-    year: '',
-    interests: '',
-    resumeUrl: '',
+    employeeName: '',
+    phone: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -35,10 +24,6 @@ export default function MemberRegister({ onNavigate, onRegisterSuccess }) {
   const handleChange = (event) => {
     const { name, value } = event.target;
     setFormValues((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleYearChange = (value) => {
-    setFormValues((prev) => ({ ...prev, year: value }));
   };
 
   const handleSubmit = async (event) => {
@@ -60,31 +45,26 @@ export default function MemberRegister({ onNavigate, onRegisterSuccess }) {
       return;
     }
 
-    try {
-      // Parse interests from comma-separated string
-      const interestsArray = formValues.interests
-        ? formValues.interests.split(',').map((i) => i.trim()).filter(Boolean)
-        : [];
+    if (!formValues.employeeName.trim()) {
+      setErrorMessage('Employee name is required.');
+      setIsSubmitting(false);
+      return;
+    }
 
+    try {
       const requestBody = {
         email: formValues.email,
         password: formValues.password,
         name: formValues.name,
-        major: formValues.major || undefined,
-        year: formValues.year || undefined,
-        interests: interestsArray.length > 0 ? interestsArray : undefined,
-        resumeUrl: formValues.resumeUrl || undefined,
+        employeeName: formValues.employeeName,
+        phone: formValues.phone || undefined,
+        role: 'company', // Set role to 'company' for partners
       };
 
-      const fullUrl = `${API_BASE_URL}/api/auth/register`;
-      console.log('=== Registration Debug ===');
-      console.log('API_BASE_URL:', API_BASE_URL);
-      console.log('Full URL:', fullUrl);
+      console.log('Sending company registration request to:', `${API_BASE_URL}/api/auth/register`);
       console.log('Request body:', { ...requestBody, password: '***' });
-      console.log('Environment:', import.meta.env.MODE);
-      console.log('VITE_API_BASE_URL from env:', import.meta.env.VITE_API_BASE_URL);
 
-      const response = await fetch(fullUrl, {
+      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -101,7 +81,7 @@ export default function MemberRegister({ onNavigate, onRegisterSuccess }) {
           status: response.status,
           statusText: response.statusText,
           contentType,
-          body: text.substring(0, 500), // First 500 chars
+          body: text.substring(0, 500),
         });
         throw new Error(`Server error (${response.status}): ${response.statusText}. Check if backend is running.`);
       }
@@ -138,7 +118,7 @@ export default function MemberRegister({ onNavigate, onRegisterSuccess }) {
       } else {
         // If no auto-login, redirect to login page after 2 seconds
         setTimeout(() => {
-          onNavigate('member-login');
+          onNavigate('company-login');
         }, 2000);
       }
     } catch (err) {
@@ -156,7 +136,7 @@ export default function MemberRegister({ onNavigate, onRegisterSuccess }) {
         <div className="container mx-auto">
           <Button 
             variant="ghost" 
-            onClick={() => onNavigate('member-login')}
+            onClick={() => onNavigate('company-login')}
             className="text-white hover:bg-white/10"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -170,8 +150,8 @@ export default function MemberRegister({ onNavigate, onRegisterSuccess }) {
         <div className="max-w-md mx-auto">
           <Card>
             <CardHeader>
-              <CardTitle style={{ color: '#733635' }}>Create Account</CardTitle>
-              <CardDescription>Join CSIET as a new member</CardDescription>
+              <CardTitle style={{ color: '#733635' }}>Create Company Account</CardTitle>
+              <CardDescription>Register your company as a partner</CardDescription>
             </CardHeader>
             <CardContent>
               {successMessage && (
@@ -181,16 +161,41 @@ export default function MemberRegister({ onNavigate, onRegisterSuccess }) {
               )}
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="register-name">Full Name *</Label>
+                  <Label htmlFor="register-company-name">Company Name *</Label>
                   <Input
-                    id="register-name"
+                    id="register-company-name"
                     name="name"
                     type="text"
-                    placeholder="John Doe"
+                    placeholder="Acme Corporation"
                     value={formValues.name}
                     onChange={handleChange}
                     required
+                    autoComplete="organization"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="register-employee-name">Employee Name *</Label>
+                  <Input
+                    id="register-employee-name"
+                    name="employeeName"
+                    type="text"
+                    placeholder="John Doe"
+                    value={formValues.employeeName}
+                    onChange={handleChange}
+                    required
                     autoComplete="name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="register-phone">Phone Number</Label>
+                  <Input
+                    id="register-phone"
+                    name="phone"
+                    type="tel"
+                    placeholder="(555) 123-4567"
+                    value={formValues.phone}
+                    onChange={handleChange}
+                    autoComplete="tel"
                   />
                 </div>
                 <div className="space-y-2">
@@ -199,7 +204,7 @@ export default function MemberRegister({ onNavigate, onRegisterSuccess }) {
                     id="register-email"
                     name="email"
                     type="email"
-                    placeholder="member@email.sc.edu"
+                    placeholder="company@example.com"
                     value={formValues.email}
                     onChange={handleChange}
                     required
@@ -232,54 +237,6 @@ export default function MemberRegister({ onNavigate, onRegisterSuccess }) {
                     required
                     autoComplete="new-password"
                     minLength={6}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="register-major">Major</Label>
-                  <Input
-                    id="register-major"
-                    name="major"
-                    type="text"
-                    placeholder="Computer Science"
-                    value={formValues.major}
-                    onChange={handleChange}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="register-year">Year</Label>
-                  <Select value={formValues.year} onValueChange={handleYearChange}>
-                    <SelectTrigger id="register-year">
-                      <SelectValue placeholder="Select your year" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {ALLOWED_YEARS.map((year) => (
-                        <SelectItem key={year} value={year}>
-                          {year}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="register-interests">Interests</Label>
-                  <Input
-                    id="register-interests"
-                    name="interests"
-                    type="text"
-                    placeholder="Web Development, AI, Machine Learning (comma-separated)"
-                    value={formValues.interests}
-                    onChange={handleChange}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="register-resume">Resume URL</Label>
-                  <Input
-                    id="register-resume"
-                    name="resumeUrl"
-                    type="url"
-                    placeholder="https://example.com/resume.pdf"
-                    value={formValues.resumeUrl}
-                    onChange={handleChange}
                   />
                 </div>
                 {errorMessage && (
