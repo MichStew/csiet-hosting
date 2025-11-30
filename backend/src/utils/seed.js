@@ -16,6 +16,7 @@ const sampleMembers = [
     year: 'Junior',
     interests: ['Product Design', 'Sales Strategy', 'Leadership'],
     resumeUrl: 'https://example.com/resumes/emily-johnson.pdf',
+    profileImageUrl: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=300&q=80',
   },
   {
     name: 'Michael Chen',
@@ -24,6 +25,7 @@ const sampleMembers = [
     year: 'Senior',
     interests: ['Software Sales', 'AI/ML', 'Entrepreneurship'],
     resumeUrl: 'https://example.com/resumes/michael-chen.pdf',
+    profileImageUrl: 'https://images.unsplash.com/photo-1603415526960-f7e0328c63b1?auto=format&fit=crop&w=300&q=80',
   },
   {
     name: 'Sarah Martinez',
@@ -32,6 +34,7 @@ const sampleMembers = [
     year: 'Sophomore',
     interests: ['Process Optimization', 'Client Relations', 'Data Analytics'],
     resumeUrl: 'https://example.com/resumes/sarah-martinez.pdf',
+    profileImageUrl: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=300&q=80',
   },
   {
     name: 'David Thompson',
@@ -40,15 +43,17 @@ const sampleMembers = [
     year: 'Senior',
     interests: ['Technical Sales', 'IoT Solutions', 'Networking'],
     resumeUrl: 'https://example.com/resumes/david-thompson.pdf',
+    profileImageUrl: 'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=300&q=80',
   },
 ];
 
-function buildProfileFields({ major, year, interests, resumeUrl }) {
+function buildProfileFields({ major, year, interests, resumeUrl, profileImageUrl }) {
   const fields = {};
   if (major !== undefined) fields.major = major;
   if (year !== undefined) fields.year = year;
   if (interests !== undefined) fields.interests = interests;
   if (resumeUrl !== undefined) fields.resumeUrl = resumeUrl;
+  if (profileImageUrl !== undefined) fields.profileImageUrl = profileImageUrl;
   return fields;
 }
 
@@ -61,10 +66,17 @@ async function upsertUser({
   year,
   interests,
   resumeUrl,
+  profileImageUrl,
 }) {
   const normalizedEmail = email.toLowerCase();
   const passwordHash = await bcrypt.hash(password, 10);
-  const profileFields = buildProfileFields({ major, year, interests, resumeUrl });
+  const profileFields = buildProfileFields({
+    major,
+    year,
+    interests,
+    resumeUrl,
+    profileImageUrl,
+  });
 
   const existing = await User.findOne({ email: normalizedEmail, role });
   if (existing) {
@@ -95,6 +107,7 @@ async function seedMembers() {
     year: 'Senior',
     interests: ['Full-stack Development', 'Community Building'],
     resumeUrl: 'https://example.com/resumes/demo-member.pdf',
+    profileImageUrl: 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=300&q=80',
   });
 
   for (const member of sampleMembers) {

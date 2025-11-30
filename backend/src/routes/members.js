@@ -38,7 +38,8 @@ export function getProfileHandler(req, res) {
 }
 
 export async function createMemberHandler(req, res) {
-  const { email, password, name, major, year, interests, resumeUrl } = req.body || {};
+  const { email, password, name, major, year, interests, resumeUrl, profileImageUrl } =
+    req.body || {};
 
   if (!email || !password || !name) {
     return res.status(400).json({ message: 'Email, password, and name are required.' });
@@ -75,6 +76,7 @@ export async function createMemberHandler(req, res) {
       year: year || '',
       interests: sanitizedInterests,
       resumeUrl: resumeUrl?.trim() || '',
+      profileImageUrl: profileImageUrl?.trim() || '',
     });
 
     return res.status(201).json({
@@ -91,7 +93,7 @@ export async function createMemberHandler(req, res) {
 }
 
 export async function updateProfileHandler(req, res) {
-  const { name, major, year, interests, resumeUrl } = req.body || {};
+  const { name, major, year, interests, resumeUrl, profileImageUrl } = req.body || {};
 
   if (!name) {
     return res.status(400).json({ message: 'Name is required.' });
@@ -115,6 +117,7 @@ export async function updateProfileHandler(req, res) {
     req.user.year = year || '';
     req.user.interests = sanitizedInterests;
     req.user.resumeUrl = resumeUrl?.trim() || '';
+    req.user.profileImageUrl = profileImageUrl?.trim() || '';
 
     await req.user.save();
     return res.json({ member: req.user.toSafeObject() });
@@ -154,10 +157,11 @@ router.post('/', createMemberHandler); // POST /api/members - Create new member
 
 // Authenticated endpoints
 router.get('/', authenticate, listMembersHandler); // GET /api/members - List all members
-router.get('/:id', authenticate, getMemberByIdHandler); // GET /api/members/:id - Get specific member
+// Keep /me routes ahead of /:id so “me” is not treated as an ID
 router.get('/me', authenticate, getProfileHandler); // GET /api/members/me - Get own profile
 router.put('/me', authenticate, updateProfileHandler); // PUT /api/members/me - Update own profile
 router.delete('/me', authenticate, deleteProfileHandler); // DELETE /api/members/me - Delete own account
+router.get('/:id', authenticate, getMemberByIdHandler); // GET /api/members/:id - Get specific member
 
 // Admin-only endpoints
 router.delete('/:id', authenticate, requireAdmin, deleteMemberHandler); // DELETE /api/members/:id - Admin delete member

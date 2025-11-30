@@ -4,7 +4,7 @@ import { app } from './app.js';
 
 dotenv.config();
 
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT;
 const MONGO_URI =
   process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://localhost:27017/csiet';
 
@@ -17,7 +17,7 @@ export async function startServer(port = PORT, mongoUri = MONGO_URI) {
 
 if (process.env.NODE_ENV !== 'test') {
   startServer().catch((err) => {
-    console.error('❌ Failed to start backend server:', err);
+    console.error('Failed to start backend server:', err);
     process.exit(1);
   });
 }

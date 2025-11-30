@@ -25,6 +25,7 @@ export default function MemberInfo({ onNavigate, auth, onProfileUpdate, onSessio
     year: '',
     interestsText: '',
     resumeUrl: '',
+    profileImageUrl: user?.profileImageUrl || '',
   });
   const [profileStatus, setProfileStatus] = useState({ type: '', message: '' });
   const [loadingMembers, setLoadingMembers] = useState(false);
@@ -98,6 +99,7 @@ export default function MemberInfo({ onNavigate, auth, onProfileUpdate, onSessio
           major: meData.member?.major || '',
           year: meData.member?.year || '',
           resumeUrl: meData.member?.resumeUrl || '',
+          profileImageUrl: meData.member?.profileImageUrl || '',
           interestsText: (meData.member?.interests || []).join(', '),
         });
       } catch (err) {
@@ -188,6 +190,7 @@ export default function MemberInfo({ onNavigate, auth, onProfileUpdate, onSessio
           year: profileForm.year,
           interests: interestsArray,
           resumeUrl: profileForm.resumeUrl,
+          profileImageUrl: profileForm.profileImageUrl,
         }),
       });
 
@@ -356,6 +359,35 @@ export default function MemberInfo({ onNavigate, auth, onProfileUpdate, onSessio
                     placeholder="https://example.com/resume.pdf"
                   />
                 </div>
+                <div className="space-y-2 col-span-1 md:col-span-2">
+                  <label className="text-sm font-medium" htmlFor="profileImageUrl">
+                    Profile Image URL
+                  </label>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <Input
+                      id="profileImageUrl"
+                      name="profileImageUrl"
+                      value={profileForm.profileImageUrl}
+                      onChange={handleProfileChange}
+                      placeholder="https://example.com/photo.jpg"
+                    />
+                    {profileForm.profileImageUrl && (
+                      <div className="w-16 h-16 rounded-full overflow-hidden border border-gray-200 bg-gray-50 self-start">
+                        <img
+                          src={profileForm.profileImageUrl}
+                          alt="Profile preview"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Paste a direct link to your headshot (JPG or PNG). Square images look best.
+                  </p>
+                </div>
                 <div className="col-span-1 md:col-span-2 flex flex-col gap-2">
                   {profileStatus.message && (
                     <p
@@ -460,20 +492,42 @@ export default function MemberInfo({ onNavigate, auth, onProfileUpdate, onSessio
         {activeMember ? (
           <div className="max-w-4xl mx-auto">
             <Card className="shadow-lg">
-              <CardHeader>
-                <CardTitle style={{ color: '#733635' }} className="text-3xl">
-                  {activeMember.name}
-                </CardTitle>
-                <p className="text-gray-600">{activeMember.email}</p>
-                {activeMember.year && (
-                  <Badge
-                    variant="outline"
-                    className="w-fit mt-2"
-                    style={{ borderColor: '#733635', color: '#733635' }}
+              <CardHeader className="flex flex-col gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4">
+                  <div
+                    className="w-20 h-20 rounded-full overflow-hidden border border-gray-200 bg-gradient-to-br from-amber-50 via-white to-rose-50 relative"
+                    aria-hidden="true"
                   >
-                    {activeMember.year}
-                  </Badge>
-                )}
+                    <div className="absolute inset-0 flex items-center justify-center text-xl font-semibold text-gray-500">
+                      {(activeMember.name || '?').charAt(0).toUpperCase()}
+                    </div>
+                    {activeMember.profileImageUrl ? (
+                      <img
+                        src={activeMember.profileImageUrl}
+                        alt={`${activeMember.name || 'Member'} avatar`}
+                        className="w-full h-full object-cover relative z-10"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    ) : null}
+                  </div>
+                  <div className="space-y-1">
+                    <CardTitle style={{ color: '#733635' }} className="text-3xl">
+                      {activeMember.name}
+                    </CardTitle>
+                    <p className="text-gray-600 break-all">{activeMember.email}</p>
+                    {activeMember.year && (
+                      <Badge
+                        variant="outline"
+                        className="w-fit mt-2"
+                        style={{ borderColor: '#733635', color: '#733635' }}
+                      >
+                        {activeMember.year}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
