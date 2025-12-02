@@ -17,7 +17,15 @@ export async function startServer(port = PORT, mongoUri = MONGO_URI) {
 
 if (process.env.NODE_ENV !== 'test') {
   startServer().catch((err) => {
-    console.error('❌ Failed to start backend server:', err);
+    console.error('[ERROR] Failed to start backend server');
+    
+    if (err.code === 8000 || err.codeName === 'AtlasError' || err.message?.includes('bad auth')) {
+      console.error('\nMongoDB Atlas authentication error detected.');
+      console.error('Please verify your connection string in backend/.env\n');
+    } else {
+      console.error(err);
+    }
+    
     process.exit(1);
   });
 }

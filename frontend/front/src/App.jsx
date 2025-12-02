@@ -7,6 +7,7 @@ import MemberLogin from './components/MemberLogin';
 import MemberRegister from './components/MemberRegister';
 import ContactUs from './components/ContactUs';
 import MemberInfo from './components/MemberInfo';
+import Dashboard from './components/Dashboard';
 
 const AUTH_STORAGE_KEY = 'csiet.auth';
 
@@ -49,7 +50,7 @@ export default function App() {
   const handleLoginSuccess = (authPayload) => {
     setSessionNotice('');
     setAuthState(authPayload);
-    setCurrentPage('member-directory');
+    setCurrentPage('dashboard');
   };
 
   const handleProfileUpdate = (updatedUser) => {
@@ -78,7 +79,7 @@ export default function App() {
   };
 
   const handleNavigate = (destination) => {
-    if (destination === 'member-directory' && !isAuthenticated) {
+    if ((destination === 'member-directory' || destination === 'dashboard') && !isAuthenticated) {
       setCurrentPage('member-login');
       return;
     }
@@ -129,6 +130,15 @@ export default function App() {
       case 'member-directory':
         return (
           <MemberInfo
+            onNavigate={handleNavigate}
+            auth={authState}
+            onProfileUpdate={handleProfileUpdate}
+            onSessionExpired={handleSessionExpired}
+          />
+        );
+      case 'dashboard':
+        return (
+          <Dashboard
             onNavigate={handleNavigate}
             auth={authState}
             onProfileUpdate={handleProfileUpdate}

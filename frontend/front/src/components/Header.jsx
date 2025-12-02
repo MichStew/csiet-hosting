@@ -39,6 +39,14 @@ export default function Header({ onNavigate, isAuthenticated, onLogout, user }) 
         <>
           <Button
             variant="outline"
+            onClick={() => navigateAndClose('dashboard')}
+            className={`${sharedOutlineClasses} ${isMobile ? 'w-full justify-center' : ''}`}
+            style={outlineStyles}
+          >
+            Dashboard
+          </Button>
+          <Button
+            variant="outline"
             onClick={() => navigateAndClose('member-directory')}
             className={`${sharedOutlineClasses} ${isMobile ? 'w-full justify-center' : ''}`}
             style={outlineStyles}

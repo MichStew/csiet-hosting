@@ -17,11 +17,24 @@ export async function connectDB(uri) {
       .connect(uri, { serverSelectionTimeoutMS: 5000 })
       .then((conn) => {
         cache.conn = conn;
-        console.log(`✅ MongoDB connected: ${conn.connection.host}`);
+        console.log(`[SUCCESS] MongoDB connected: ${conn.connection.host}`);
         return conn;
       })
       .catch((err) => {
         cache.promise = null;
+        
+        // Provide helpful error messages for common MongoDB Atlas authentication issues
+        if (err.code === 8000 || err.codeName === 'AtlasError' || err.message?.includes('bad auth')) {
+          console.error('\n[ERROR] MongoDB Atlas Authentication Failed!\n');
+          console.error('Common causes:');
+          console.error('  1. Incorrect username or password in connection string');
+          console.error('  2. Special characters in password need URL encoding (e.g., @ → %40, # → %23)');
+          console.error('  3. IP address not whitelisted in Atlas Network Access');
+          console.error('  4. Database user permissions not configured correctly\n');
+          console.error('Check your MONGO_URI in backend/.env');
+          console.error('Format: mongodb+srv://<username>:<password>@<cluster>.mongodb.net/<database>?\n');
+        }
+        
         throw err;
       });
   }
