@@ -40,6 +40,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    profileImageUrl: {
+      type: String,
+      trim: true,
+    },
     employeeName: {
       type: String,
       trim: true,
@@ -62,6 +66,7 @@ userSchema.methods.toSafeObject = function toSafeObject() {
     year: this.year || '',
     interests: this.interests || [],
     resumeUrl: this.resumeUrl || '',
+    profileImageUrl: this.profileImageUrl || '',
     employeeName: this.employeeName || '',
     phone: this.phone || '',
   };
