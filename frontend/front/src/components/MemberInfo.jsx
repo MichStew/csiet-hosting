@@ -1,15 +1,24 @@
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
-import { ArrowLeft, ChevronsUpDown, FileText, Loader2, Save, Search } from 'lucide-react';
+import { AlertCircle, ArrowLeft, FileText, Loader2, Save, Search } from 'lucide-react';
 import { getApiBaseUrl } from '../utils/api';
 
 const API_BASE_URL = getApiBaseUrl();
 const YEAR_OPTIONS = ['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate'];
 const UNAUTHORIZED_STATUSES = new Set([401, 403]);
+
+const isProfileComplete = (member) => {
+  if (!member) return false;
+  const hasMajor = Boolean(member.major?.trim());
+  const hasYear = Boolean(member.year?.trim());
+  const hasInterests = Array.isArray(member.interests) && member.interests.some((i) => i?.trim());
+  const hasResume = Boolean(member.resumeUrl?.trim());
+  return hasMajor && hasYear && hasInterests && hasResume;
+};
 
 export default function MemberInfo({ onNavigate, auth, onProfileUpdate, onSessionExpired }) {
   const token = auth?.token;
@@ -17,7 +26,6 @@ export default function MemberInfo({ onNavigate, auth, onProfileUpdate, onSessio
 
   const [members, setMembers] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedMemberEmail, setSelectedMemberEmail] = useState('');
   const [profileForm, setProfileForm] = useState({
     name: user?.name || '',
@@ -31,7 +39,8 @@ export default function MemberInfo({ onNavigate, auth, onProfileUpdate, onSessio
   const [loadingMembers, setLoadingMembers] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const dropdownRef = useRef(null);
+  const [mustCompleteProfile, setMustCompleteProfile] = useState(false);
+  const [profileChecked, setProfileChecked] = useState(false);
   const defaultSessionMessage = 'Your session expired. Please log in again.';
 
   const handleExpiredSession = (message) => {
@@ -93,6 +102,8 @@ export default function MemberInfo({ onNavigate, auth, onProfileUpdate, onSessio
           interests: member.interests || [],
         }));
         setMembers(sortedMembers);
+        const profileComplete = isProfileComplete(meData.member);
+        setMustCompleteProfile(!profileComplete);
         setSelectedMemberEmail((prev) => prev || meData.member?.email || sortedMembers[0]?.email || '');
         setProfileForm({
           name: meData.member?.name || '',
@@ -102,6 +113,7 @@ export default function MemberInfo({ onNavigate, auth, onProfileUpdate, onSessio
           profileImageUrl: meData.member?.profileImageUrl || '',
           interestsText: (meData.member?.interests || []).join(', '),
         });
+        setProfileChecked(true);
       } catch (err) {
         if (isMounted) {
           setErrorMessage(err.message || 'Unexpected error while loading data.');
@@ -109,6 +121,7 @@ export default function MemberInfo({ onNavigate, auth, onProfileUpdate, onSessio
       } finally {
         if (isMounted) {
           setLoadingMembers(false);
+          setProfileChecked(true);
         }
       }
     };
@@ -119,28 +132,19 @@ export default function MemberInfo({ onNavigate, auth, onProfileUpdate, onSessio
     };
   }, [token]);
 
-  useEffect(() => {
-    if (!isDropdownOpen) {
-      return undefined;
-    }
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isDropdownOpen]);
-
   const filteredMembers = useMemo(() => {
     const query = searchQuery.toLowerCase();
     return members.filter((member) => {
+      const name = member.name || '';
+      const major = member.major || '';
+      const year = member.year || '';
+      const interests = Array.isArray(member.interests) ? member.interests : [];
       if (!query) return true;
       return (
-        member.name.toLowerCase().includes(query) ||
-        member.major.toLowerCase().includes(query) ||
-        member.year.toLowerCase().includes(query) ||
-        member.interests.some((interest) => interest.toLowerCase().includes(query))
+        name.toLowerCase().includes(query) ||
+        major.toLowerCase().includes(query) ||
+        year.toLowerCase().includes(query) ||
+        interests.some((interest) => interest.toLowerCase().includes(query))
       );
     });
   }, [searchQuery, members]);
@@ -221,6 +225,7 @@ export default function MemberInfo({ onNavigate, auth, onProfileUpdate, onSessio
       });
       setSelectedMemberEmail(data.member.email);
       onProfileUpdate?.(data.member);
+      setMustCompleteProfile(!isProfileComplete(data.member));
 
       setProfileStatus({
         type: 'success',
@@ -259,6 +264,149 @@ export default function MemberInfo({ onNavigate, auth, onProfileUpdate, onSessio
     );
   }
 
+  const profileFormCard = (
+    <Card>
+      <CardHeader>
+        <CardTitle style={{ color: '#733635' }}>
+          {mustCompleteProfile ? 'Complete Your Profile' : 'Update Your Profile'}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleProfileSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2 col-span-1 md:col-span-2">
+            <label className="text-sm font-medium" htmlFor="name">
+              Full Name
+            </label>
+            <Input
+              id="name"
+              name="name"
+              value={profileForm.name}
+              onChange={handleProfileChange}
+              placeholder="Enter your name"
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium" htmlFor="major">
+              Major
+            </label>
+            <Input
+              id="major"
+              name="major"
+              value={profileForm.major}
+              onChange={handleProfileChange}
+              placeholder="Mechanical Engineering"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium" htmlFor="year">
+              Year
+            </label>
+            <div className="relative">
+              <select
+                id="year"
+                name="year"
+                value={profileForm.year}
+                onChange={handleProfileChange}
+                className="w-full rounded-md border px-3 py-2"
+              >
+                <option value="">Select year</option>
+                {YEAR_OPTIONS.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="space-y-2 col-span-1 md:col-span-2">
+            <label className="text-sm font-medium" htmlFor="interests">
+              Interests (comma separated)
+            </label>
+            <Textarea
+              id="interests"
+              name="interestsText"
+              value={profileForm.interestsText}
+              onChange={handleProfileChange}
+              placeholder="Product Design, Client Relations, Leadership"
+              rows={3}
+            />
+          </div>
+          <div className="space-y-2 col-span-1 md:col-span-2">
+            <label className="text-sm font-medium" htmlFor="resumeUrl">
+              Resume URL
+            </label>
+            <Input
+              id="resumeUrl"
+              name="resumeUrl"
+              value={profileForm.resumeUrl}
+              onChange={handleProfileChange}
+              placeholder="https://example.com/resume.pdf"
+            />
+          </div>
+          <div className="space-y-2 col-span-1 md:col-span-2">
+            <label className="text-sm font-medium" htmlFor="profileImageUrl">
+              Profile Image URL
+            </label>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <Input
+                id="profileImageUrl"
+                name="profileImageUrl"
+                value={profileForm.profileImageUrl}
+                onChange={handleProfileChange}
+                placeholder="https://example.com/photo.jpg"
+              />
+              {profileForm.profileImageUrl && (
+                <div className="w-16 h-16 rounded-full overflow-hidden border border-gray-200 bg-gray-50 self-start">
+                  <img
+                    src={profileForm.profileImageUrl}
+                    alt="Profile preview"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+            <p className="text-xs text-gray-500">
+              Paste a direct link to your headshot (JPG or PNG). Square images look best.
+            </p>
+          </div>
+          <div className="col-span-1 md:col-span-2 flex flex-col gap-2">
+            {profileStatus.message && (
+              <p
+                className={`text-sm ${
+                  profileStatus.type === 'success' ? 'text-green-600' : 'text-red-600'
+                }`}
+              >
+                {profileStatus.message}
+              </p>
+            )}
+            <Button
+              type="submit"
+              className="self-start text-white"
+              style={{ backgroundColor: '#733635' }}
+              disabled={savingProfile}
+            >
+              {savingProfile ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Profile
+                </>
+              )}
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#ebe3d5' }}>
       <div className="py-8 px-4" style={{ backgroundColor: '#733635' }}>
@@ -279,317 +427,224 @@ export default function MemberInfo({ onNavigate, auth, onProfileUpdate, onSessio
       </div>
 
       <div className="container mx-auto px-4 py-10 space-y-10">
+        {mustCompleteProfile && profileChecked && (
+          <Card className="max-w-4xl mx-auto border-amber-200 bg-amber-50">
+            <CardContent className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-amber-600 mt-1" />
+              <div className="space-y-1">
+                <p className="font-semibold text-amber-800">Finish your profile to unlock the directory</p>
+                <p className="text-sm text-amber-800/80">
+                  Add your major, year, interests, and resume link so members with similar backgrounds can discover you.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <div className="max-w-4xl mx-auto">
-          <Card>
-            <CardHeader>
-              <CardTitle style={{ color: '#733635' }}>
-                Update Your Profile
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleProfileSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2 col-span-1 md:col-span-2">
-                  <label className="text-sm font-medium" htmlFor="name">
-                    Full Name
-                  </label>
-                  <Input
-                    id="name"
-                    name="name"
-                    value={profileForm.name}
-                    onChange={handleProfileChange}
-                    placeholder="Enter your name"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium" htmlFor="major">
-                    Major
-                  </label>
-                  <Input
-                    id="major"
-                    name="major"
-                    value={profileForm.major}
-                    onChange={handleProfileChange}
-                    placeholder="Mechanical Engineering"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium" htmlFor="year">
-                    Year
-                  </label>
-                  <div className="relative">
-                    <select
-                      id="year"
-                      name="year"
-                      value={profileForm.year}
-                      onChange={handleProfileChange}
-                      className="w-full rounded-md border px-3 py-2"
-                    >
-                      <option value="">Select year</option>
-                      {YEAR_OPTIONS.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-                <div className="space-y-2 col-span-1 md:col-span-2">
-                  <label className="text-sm font-medium" htmlFor="interests">
-                    Interests (comma separated)
-                  </label>
-                  <Textarea
-                    id="interests"
-                    name="interestsText"
-                    value={profileForm.interestsText}
-                    onChange={handleProfileChange}
-                    placeholder="Product Design, Client Relations, Leadership"
-                    rows={3}
-                  />
-                </div>
-                <div className="space-y-2 col-span-1 md:col-span-2">
-                  <label className="text-sm font-medium" htmlFor="resumeUrl">
-                    Resume URL
-                  </label>
-                  <Input
-                    id="resumeUrl"
-                    name="resumeUrl"
-                    value={profileForm.resumeUrl}
-                    onChange={handleProfileChange}
-                    placeholder="https://example.com/resume.pdf"
-                  />
-                </div>
-                <div className="space-y-2 col-span-1 md:col-span-2">
-                  <label className="text-sm font-medium" htmlFor="profileImageUrl">
-                    Profile Image URL
-                  </label>
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          {profileFormCard}
+        </div>
+
+        {!mustCompleteProfile && (
+          <>
+            <div className="max-w-5xl mx-auto w-full">
+              <Card>
+                <CardHeader className="space-y-1">
+                  <CardTitle style={{ color: '#733635' }}>Member Database</CardTitle>
+                  <p className="text-sm text-gray-600">Search by name, major, year, or interests to find similar members.</p>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center gap-3">
+                    <Search className="h-4 w-4 text-gray-400" />
                     <Input
-                      id="profileImageUrl"
-                      name="profileImageUrl"
-                      value={profileForm.profileImageUrl}
-                      onChange={handleProfileChange}
-                      placeholder="https://example.com/photo.jpg"
+                      type="text"
+                      placeholder="Search members (e.g., Computer Science, leadership, senior)"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
                     />
-                    {profileForm.profileImageUrl && (
-                      <div className="w-16 h-16 rounded-full overflow-hidden border border-gray-200 bg-gray-50 self-start">
-                        <img
-                          src={profileForm.profileImageUrl}
-                          alt="Profile preview"
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                          }}
-                        />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Showing {filteredMembers.length} of {members.length} members
+                  </p>
+                  <div className="mt-4 max-h-[520px] overflow-y-auto pr-1 space-y-2">
+                    {loadingMembers ? (
+                      <div className="flex items-center gap-2 text-gray-600 text-sm px-2 py-3">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Loading members...
+                      </div>
+                    ) : filteredMembers.length > 0 ? (
+                      filteredMembers.map((member) => {
+                        const interests = Array.isArray(member.interests) ? member.interests : [];
+                        const isSelected = member.email === selectedMemberEmail;
+                        return (
+                          <button
+                            key={member.email}
+                            className={`w-full text-left rounded-lg border px-4 py-3 transition hover:shadow-sm ${
+                              isSelected ? 'border-[#733635] bg-rose-50/70' : 'border-gray-200 bg-white'
+                            }`}
+                            onClick={() => handleSelectMember(member.email)}
+                          >
+                            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                              <div>
+                                <p className="font-semibold" style={{ color: '#733635' }}>
+                                  {member.name}
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                  {member.major || 'Major TBD'}
+                                </p>
+                                <p className="text-xs text-gray-500 break-all">{member.email}</p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Badge
+                                  variant="outline"
+                                  className="w-fit"
+                                  style={{ borderColor: '#733635', color: '#733635' }}
+                                >
+                                  {member.year || 'Year TBD'}
+                                </Badge>
+                              </div>
+                            </div>
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              {interests.length ? (
+                                interests.map((interest) => (
+                                  <Badge
+                                    key={interest}
+                                    className="text-xs"
+                                    style={{
+                                      backgroundColor: 'rgba(115, 54, 53, 0.08)',
+                                      color: '#733635',
+                                      border: 'none',
+                                    }}
+                                  >
+                                    {interest}
+                                  </Badge>
+                                ))
+                              ) : (
+                                <span className="text-xs text-gray-500">No interests listed yet.</span>
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })
+                    ) : (
+                      <div className="text-sm text-gray-500 px-2 py-3">
+                        No members match “{searchQuery}”.
                       </div>
                     )}
                   </div>
-                  <p className="text-xs text-gray-500">
-                    Paste a direct link to your headshot (JPG or PNG). Square images look best.
-                  </p>
-                </div>
-                <div className="col-span-1 md:col-span-2 flex flex-col gap-2">
-                  {profileStatus.message && (
-                    <p
-                      className={`text-sm ${
-                        profileStatus.type === 'success' ? 'text-green-600' : 'text-red-600'
-                      }`}
-                    >
-                      {profileStatus.message}
-                    </p>
-                  )}
-                  <Button
-                    type="submit"
-                    className="self-start text-white"
-                    style={{ backgroundColor: '#733635' }}
-                    disabled={savingProfile}
-                  >
-                    {savingProfile ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="h-4 w-4 mr-2" />
-                        Save Profile
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
+                </CardContent>
+              </Card>
+            </div>
 
-        <div ref={dropdownRef} className="max-w-2xl mx-auto">
-          <p className="mb-2 text-center text-gray-600">
-            Select a member to view their details
-          </p>
-          <div className="relative">
-            <Button
-              variant="outline"
-              className="w-full justify-between text-left font-normal bg-white"
-              style={{ borderColor: '#733635', color: '#733635' }}
-              onClick={() => setIsDropdownOpen((prev) => !prev)}
-              disabled={loadingMembers || members.length === 0}
-            >
-              <span>
-                {loadingMembers
-                  ? 'Loading members...'
-                  : activeMember
-                    ? activeMember.name
-                    : 'No members available'}
-              </span>
-              <ChevronsUpDown className="h-4 w-4 opacity-50" />
-            </Button>
-            {isDropdownOpen && (
-              <div className="absolute mt-2 w-full bg-white border rounded-lg shadow-lg overflow-hidden z-10">
-                <div className="p-3 border-b flex items-center gap-2">
-                  <Search className="h-4 w-4 text-gray-400" />
-                  <Input
-                    type="text"
-                    placeholder="Search members..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="border-0 focus-visible:ring-0 px-0"
-                    autoFocus
-                  />
-                </div>
-                <div className="max-h-64 overflow-y-auto">
-                  {filteredMembers.length > 0 ? (
-                    filteredMembers.map((member) => (
-                      <button
-                        key={member.email}
-                        className="w-full text-left px-4 py-3 hover:bg-gray-50 flex flex-col"
-                        onClick={() => handleSelectMember(member.email)}
-                      >
-                        <span className="font-medium" style={{ color: '#733635' }}>
-                          {member.name}
-                        </span>
-                        <span className="text-sm text-gray-600">
-                          {member.major || 'Major TBD'} • {member.year || 'Year TBD'}
-                        </span>
-                      </button>
-                    ))
-                  ) : (
-                    <div className="px-4 py-6 text-center text-gray-500">
-                      No members match “{searchQuery}”
-                    </div>
-                  )}
-                </div>
+            {errorMessage && (
+              <div className="text-center text-red-600">
+                {errorMessage}
               </div>
             )}
-          </div>
-        </div>
 
-        {errorMessage && (
-          <div className="text-center text-red-600">
-            {errorMessage}
-          </div>
-        )}
-
-        {activeMember ? (
-          <div className="max-w-4xl mx-auto">
-            <Card className="shadow-lg">
-              <CardHeader className="flex flex-col gap-4">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4">
-                  <div
-                    className="w-20 h-20 rounded-full overflow-hidden border border-gray-200 bg-gradient-to-br from-amber-50 via-white to-rose-50 relative"
-                    aria-hidden="true"
-                  >
-                    <div className="absolute inset-0 flex items-center justify-center text-xl font-semibold text-gray-500">
-                      {(activeMember.name || '?').charAt(0).toUpperCase()}
-                    </div>
-                    {activeMember.profileImageUrl ? (
-                      <img
-                        src={activeMember.profileImageUrl}
-                        alt={`${activeMember.name || 'Member'} avatar`}
-                        className="w-full h-full object-cover relative z-10"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                        }}
-                      />
-                    ) : null}
-                  </div>
-                  <div className="space-y-1">
-                    <CardTitle style={{ color: '#733635' }} className="text-3xl">
-                      {activeMember.name}
-                    </CardTitle>
-                    <p className="text-gray-600 break-all">{activeMember.email}</p>
-                    {activeMember.year && (
-                      <Badge
-                        variant="outline"
-                        className="w-fit mt-2"
-                        style={{ borderColor: '#733635', color: '#733635' }}
+            {activeMember ? (
+              <div className="max-w-4xl mx-auto">
+                <Card className="shadow-lg">
+                  <CardHeader className="flex flex-col gap-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4">
+                      <div
+                        className="w-20 h-20 rounded-full overflow-hidden border border-gray-200 bg-gradient-to-br from-amber-50 via-white to-rose-50 relative"
+                        aria-hidden="true"
                       >
-                        {activeMember.year}
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  {activeMember.major && (
-                    <div>
-                      <p className="text-sm uppercase tracking-wide text-gray-500">
-                        Major
-                      </p>
-                      <p className="text-lg">{activeMember.major}</p>
-                    </div>
-                  )}
-                  <div>
-                    <p className="text-sm uppercase tracking-wide text-gray-500 mb-3">
-                      Interests
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {activeMember.interests?.length ? (
-                        activeMember.interests.map((interest) => (
-                          <Badge
-                            key={interest}
-                            className="text-xs"
-                            style={{
-                              backgroundColor: 'rgba(115, 54, 53, 0.1)',
-                              color: '#733635',
-                              border: 'none',
+                        <div className="absolute inset-0 flex items-center justify-center text-xl font-semibold text-gray-500">
+                          {(activeMember.name || '?').charAt(0).toUpperCase()}
+                        </div>
+                        {activeMember.profileImageUrl ? (
+                          <img
+                            src={activeMember.profileImageUrl}
+                            alt={`${activeMember.name || 'Member'} avatar`}
+                            className="w-full h-full object-cover relative z-10"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
                             }}
+                          />
+                        ) : null}
+                      </div>
+                      <div className="space-y-1">
+                        <CardTitle style={{ color: '#733635' }} className="text-3xl">
+                          {activeMember.name}
+                        </CardTitle>
+                        <p className="text-gray-600 break-all">{activeMember.email}</p>
+                        {activeMember.year && (
+                          <Badge
+                            variant="outline"
+                            className="w-fit mt-2"
+                            style={{ borderColor: '#733635', color: '#733635' }}
                           >
-                            {interest}
+                            {activeMember.year}
                           </Badge>
-                        ))
-                      ) : (
-                        <span className="text-gray-500 text-sm">No interests listed.</span>
+                        )}
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6">
+                      {activeMember.major && (
+                        <div>
+                          <p className="text-sm uppercase tracking-wide text-gray-500">
+                            Major
+                          </p>
+                          <p className="text-lg">{activeMember.major}</p>
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-sm uppercase tracking-wide text-gray-500 mb-3">
+                          Interests
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {activeMember.interests?.length ? (
+                            activeMember.interests.map((interest) => (
+                              <Badge
+                                key={interest}
+                                className="text-xs"
+                                style={{
+                                  backgroundColor: 'rgba(115, 54, 53, 0.1)',
+                                  color: '#733635',
+                                  border: 'none',
+                                }}
+                              >
+                                {interest}
+                              </Badge>
+                            ))
+                          ) : (
+                            <span className="text-gray-500 text-sm">No interests listed.</span>
+                          )}
+                        </div>
+                      </div>
+                      {activeMember.resumeUrl && (
+                        <a
+                          href={activeMember.resumeUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-2 text-sm hover:underline"
+                          style={{ color: '#733635' }}
+                        >
+                          <FileText className="h-4 w-4" />
+                          View Resume
+                        </a>
                       )}
                     </div>
-                  </div>
-                  {activeMember.resumeUrl && (
-                    <a
-                      href={activeMember.resumeUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-2 text-sm hover:underline"
-                      style={{ color: '#733635' }}
-                    >
-                      <FileText className="h-4 w-4" />
-                      View Resume
-                    </a>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            {loadingMembers ? (
-              <p className="text-gray-600 text-lg flex items-center justify-center gap-2">
-                <Loader2 className="h-5 w-5 animate-spin" />
-                Loading member details...
-              </p>
+                  </CardContent>
+                </Card>
+              </div>
             ) : (
-              <p className="text-gray-600 text-lg">No members available.</p>
+              <div className="text-center py-12">
+                {loadingMembers ? (
+                  <p className="text-gray-600 text-lg flex items-center justify-center gap-2">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    Loading member details...
+                  </p>
+                ) : (
+                  <p className="text-gray-600 text-lg">No members available.</p>
+                )}
+              </div>
             )}
-          </div>
+          </>
         )}
       </div>
     </div>
