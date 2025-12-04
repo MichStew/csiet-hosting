@@ -64,7 +64,7 @@ export default function HomePage({ onNavigate, isAuthenticated }) {
   const featuredGallery = galleryImages.slice(0, 3);
 
   const handleDirectoryClick = () =>
-    onNavigate(isAuthenticated ? 'member-directory' : 'member-login');
+    onNavigate(isAuthenticated ? 'dashboard' : 'member-login');
 
   return (
     <div>
@@ -92,7 +92,7 @@ export default function HomePage({ onNavigate, isAuthenticated }) {
                   className="text-white hover:opacity-90"
                   style={{ backgroundColor: '#733635' }}
                 >
-                  {isAuthenticated ? 'View Member Directory' : 'Login to View Directory'}
+                  {isAuthenticated ? 'Go to Dashboard' : 'Login to Access Dashboard'}
                 </Button>
                 <Button
                   variant="outline"

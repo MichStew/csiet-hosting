@@ -1,9 +1,10 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
 import { Badge } from './ui/badge';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from './ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { 
@@ -27,10 +28,7 @@ import {
   Phone,
   Building2,
   Calendar,
-  ChevronsUpDown,
-  MapPin,
-  Clock,
-  ChevronDown
+  MapPin
 } from 'lucide-react';
 import { getApiBaseUrl } from '../utils/api';
 
@@ -61,8 +59,6 @@ export default function Dashboard({ onNavigate, auth, onProfileUpdate, onSession
   const [searchQuery, setSearchQuery] = useState('');
   const [loadingMembers, setLoadingMembers] = useState(false);
   const [selectedMemberEmail, setSelectedMemberEmail] = useState('');
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
 
   // Job postings state
   const [jobPostings, setJobPostings] = useState([]);
@@ -71,8 +67,6 @@ export default function Dashboard({ onNavigate, auth, onProfileUpdate, onSession
   const [selectedJob, setSelectedJob] = useState(null);
   const [isJobDialogOpen, setIsJobDialogOpen] = useState(false);
   const [jobFilterType, setJobFilterType] = useState('');
-  const [isJobFilterDropdownOpen, setIsJobFilterDropdownOpen] = useState(false);
-  const jobFilterDropdownRef = useRef(null);
 
   const [errorMessage, setErrorMessage] = useState('');
   const defaultSessionMessage = 'Your session expired. Please log in again.';
@@ -198,34 +192,6 @@ export default function Dashboard({ onNavigate, auth, onProfileUpdate, onSession
     }, 500);
   }, [token]);
 
-  // Handle dropdown outside click
-  useEffect(() => {
-    if (!isDropdownOpen) {
-      return undefined;
-    }
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isDropdownOpen]);
-
-  // Handle job filter dropdown outside click
-  useEffect(() => {
-    if (!isJobFilterDropdownOpen) {
-      return undefined;
-    }
-    const handleClickOutside = (event) => {
-      if (jobFilterDropdownRef.current && !jobFilterDropdownRef.current.contains(event.target)) {
-        setIsJobFilterDropdownOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isJobFilterDropdownOpen]);
-
   // Filter members
   const filteredMembers = useMemo(() => {
     const query = searchQuery.toLowerCase();
@@ -240,6 +206,14 @@ export default function Dashboard({ onNavigate, auth, onProfileUpdate, onSession
       );
     });
   }, [searchQuery, members]);
+
+  useEffect(() => {
+    if (!filteredMembers.length) return;
+    const inFiltered = filteredMembers.some((member) => member.email === selectedMemberEmail);
+    if (!inFiltered) {
+      setSelectedMemberEmail(filteredMembers[0].email);
+    }
+  }, [filteredMembers, selectedMemberEmail]);
 
   // Get unique filter suggestions
   const jobFilterSuggestions = useMemo(() => {
@@ -288,11 +262,10 @@ export default function Dashboard({ onNavigate, auth, onProfileUpdate, onSession
 
   const handleSelectJobFilter = (filterValue) => {
     setJobFilterType(filterValue === jobFilterType ? '' : filterValue);
-    setIsJobFilterDropdownOpen(false);
   };
 
   const activeMember =
-    members.find((member) => member.email === selectedMemberEmail) ||
+    filteredMembers.find((member) => member.email === selectedMemberEmail) ||
     filteredMembers[0] ||
     null;
 
@@ -301,7 +274,6 @@ export default function Dashboard({ onNavigate, auth, onProfileUpdate, onSession
     if (!member) return;
     setSelectedMemberEmail(member.email);
     setSearchQuery(member.name);
-    setIsDropdownOpen(false);
   };
 
   const handleProfileChange = (event) => {
@@ -553,20 +525,27 @@ export default function Dashboard({ onNavigate, auth, onProfileUpdate, onSession
                         <label className="text-sm font-medium" htmlFor="year">
                           Year
                         </label>
-                        <select
-                          id="year"
-                          name="year"
-                          value={profileForm.year}
-                          onChange={handleProfileChange}
-                          className="w-full rounded-md border px-3 py-2"
+                        <Select
+                          value={profileForm.year || ''}
+                          onValueChange={(value) =>
+                            setProfileForm((prev) => ({
+                              ...prev,
+                              year: value,
+                            }))
+                          }
                         >
-                          <option value="">Select year</option>
-                          {YEAR_OPTIONS.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </select>
+                          <SelectTrigger className="w-full border-2 border-[#733635]/30 bg-white shadow-sm focus:ring-2 focus:ring-[#733635] focus:border-[#733635]">
+                            <SelectValue placeholder="Select year" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">Select year</SelectItem>
+                            {YEAR_OPTIONS.map((option) => (
+                              <SelectItem key={option} value={option}>
+                                {option}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                     </>
                   )}
@@ -732,42 +711,30 @@ export default function Dashboard({ onNavigate, auth, onProfileUpdate, onSession
 
                 {/* Member Selector */}
                 {filteredMembers.length > 0 && (
-                  <div ref={dropdownRef} className="mb-6">
-                    <div className="relative">
-                      <Button
-                        variant="outline"
-                        className="w-full justify-between text-left font-semibold bg-gradient-to-r from-white to-amber-50/50 border-2 border-[#733635] text-[#733635] hover:bg-gradient-to-r hover:from-[#733635] hover:to-[#8b4a4a] hover:text-white transition-all duration-300 shadow-md hover:shadow-lg"
-                        onClick={() => setIsDropdownOpen((prev) => !prev)}
-                        disabled={loadingMembers}
-                      >
-                        <span>
-                          {loadingMembers
-                            ? 'Loading members...'
-                            : activeMember
-                              ? activeMember.name
-                              : 'Select a member'}
-                        </span>
-                        <ChevronsUpDown className="h-4 w-4 opacity-70" />
-                      </Button>
-                      {isDropdownOpen && (
-                        <div className="absolute mt-2 w-full bg-white/95 backdrop-blur-md border-2 border-amber-200/50 rounded-xl shadow-2xl overflow-hidden z-10 max-h-64 overflow-y-auto">
-                          {filteredMembers.map((member) => (
-                            <button
-                              key={member.email}
-                              className="w-full text-left px-4 py-3 hover:bg-gradient-to-r hover:from-amber-50/50 hover:to-rose-50/30 transition-all duration-200 flex flex-col border-b border-amber-100/50 last:border-0"
-                              onClick={() => handleSelectMember(member.email)}
-                            >
-                              <span className="font-bold text-lg" style={{ color: '#733635' }}>
-                                {member.name}
-                              </span>
-                              <span className="text-sm text-gray-600 mt-0.5">
+                  <div className="mb-6">
+                    <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2 block">
+                      Quick member jump
+                    </label>
+                    <Select
+                      value={selectedMemberEmail || filteredMembers[0]?.email || ''}
+                      onValueChange={(value) => handleSelectMember(value)}
+                    >
+                      <SelectTrigger className="w-full justify-between text-left font-semibold bg-gradient-to-r from-white to-amber-50/50 border-2 border-[#733635] text-[#733635] hover:border-[#8b4a4a] shadow-md">
+                        <SelectValue placeholder="Select a member" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {filteredMembers.map((member) => (
+                          <SelectItem key={member.email} value={member.email}>
+                            <div className="flex flex-col">
+                              <span className="font-semibold">{member.name}</span>
+                              <span className="text-xs text-gray-500">
                                 {member.major || 'Major TBD'} • {member.year || 'Year TBD'}
                               </span>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 )}
 
@@ -784,8 +751,8 @@ export default function Dashboard({ onNavigate, auth, onProfileUpdate, onSession
                         Showing {filteredMembers.length} of {members.length} members
                       </p>
                     </div>
-                    <div className="border-2 border-amber-200/50 rounded-xl overflow-hidden shadow-xl bg-white/80 backdrop-blur-sm">
-                      <Table>
+                    <div className="hidden md:block border-2 border-amber-200/50 rounded-xl overflow-hidden shadow-xl bg-white/80 backdrop-blur-sm overflow-x-auto">
+                      <Table className="min-w-[900px]">
                         <TableHeader className="bg-gradient-to-r from-[#733635] to-[#8b4a4a]">
                           <TableRow className="border-amber-200/30 hover:bg-transparent">
                             <TableHead className="text-white font-bold">Name</TableHead>
@@ -862,6 +829,52 @@ export default function Dashboard({ onNavigate, auth, onProfileUpdate, onSession
                           ))}
                         </TableBody>
                       </Table>
+                    </div>
+
+                    <div className="space-y-3 md:hidden">
+                      {filteredMembers.map((member) => {
+                        const isSelected = selectedMemberEmail === member.email;
+                        return (
+                          <Card
+                            key={member.email}
+                            className={`shadow-sm border ${isSelected ? 'border-[#733635]' : 'border-amber-200/60'}`}
+                            onClick={() => {
+                              setSelectedMemberEmail(member.email);
+                              setSearchQuery(member.name);
+                            }}
+                          >
+                            <CardContent className="p-4 space-y-2">
+                              <div className="flex items-center justify-between gap-2">
+                                <div>
+                                  <p className="font-semibold text-lg text-gray-900">{member.name}</p>
+                                  <p className="text-xs text-gray-500 break-all">{member.email}</p>
+                                </div>
+                                {member.year && (
+                                  <Badge className="bg-gradient-to-r from-[#733635] to-[#8b4a4a] text-white border-0">
+                                    {member.year}
+                                  </Badge>
+                                )}
+                              </div>
+                              <div className="flex flex-wrap gap-2">
+                                {member.major && (
+                                  <Badge variant="outline" className="border-[#733635] text-[#733635]">
+                                    {member.major}
+                                  </Badge>
+                                )}
+                                {(member.interests || []).slice(0, 2).map((interest) => (
+                                  <Badge
+                                    key={interest}
+                                    className="text-xs border-[#733635] text-[#733635]"
+                                    variant="outline"
+                                  >
+                                    {interest}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
                     </div>
 
                     {/* Member Details Card */}
@@ -980,92 +993,48 @@ export default function Dashboard({ onNavigate, auth, onProfileUpdate, onSession
                   </div>
                   
                   {/* Filter Dropdown with Suggestions */}
-                  <div ref={jobFilterDropdownRef} className="relative">
-                    <Button
-                      variant="outline"
-                      className="w-full justify-between text-left font-normal bg-white"
-                      style={{ borderColor: '#733635', color: '#733635' }}
-                      onClick={() => setIsJobFilterDropdownOpen((prev) => !prev)}
-                    >
-                      <span>
-                        {jobFilterType ? `Filter: ${jobFilterType}` : 'Filter by Type, Company, or Location'}
-                      </span>
-                      <ChevronDown className={`h-4 w-4 transition-transform ${isJobFilterDropdownOpen ? 'rotate-180' : ''}`} />
-                    </Button>
-                    {isJobFilterDropdownOpen && (
-                      <div className="absolute mt-2 w-full bg-white border rounded-lg shadow-lg overflow-hidden z-10 max-h-64 overflow-y-auto">
-                        <div className="p-2">
-                          <p className="text-xs font-semibold text-gray-500 uppercase px-2 py-1">Filter Suggestions</p>
-                        </div>
+                  <div className="mt-3 sm:w-80">
+                    <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2 block">
+                      Quick filter
+                    </label>
+                    <Select value={jobFilterType} onValueChange={handleSelectJobFilter}>
+                      <SelectTrigger className="w-full border-2 border-[#733635]/30 bg-white shadow-sm focus:ring-2 focus:ring-[#733635] focus:border-[#733635]">
+                        <SelectValue placeholder="Filter by Type, Company, or Location" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">All job postings</SelectItem>
                         {jobFilterSuggestions.types.length > 0 && (
-                          <>
-                            <div className="px-2 py-1">
-                              <p className="text-xs font-semibold text-gray-400 uppercase">Job Type</p>
-                            </div>
+                          <SelectGroup>
+                            <SelectLabel>Job Type</SelectLabel>
                             {jobFilterSuggestions.types.map((type) => (
-                              <button
-                                key={`type-${type}`}
-                                className={`w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center ${
-                                  jobFilterType === type ? 'bg-gray-100' : ''
-                                }`}
-                                onClick={() => handleSelectJobFilter(type)}
-                              >
-                                <Briefcase className="h-4 w-4 mr-2 text-gray-400" />
-                                <span>{type}</span>
-                              </button>
+                              <SelectItem key={`type-${type}`} value={type}>
+                                {type}
+                              </SelectItem>
                             ))}
-                          </>
+                          </SelectGroup>
                         )}
                         {jobFilterSuggestions.companies.length > 0 && (
-                          <>
-                            <div className="px-2 py-1 mt-2">
-                              <p className="text-xs font-semibold text-gray-400 uppercase">Company</p>
-                            </div>
+                          <SelectGroup>
+                            <SelectLabel>Company</SelectLabel>
                             {jobFilterSuggestions.companies.map((company) => (
-                              <button
-                                key={`company-${company}`}
-                                className={`w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center ${
-                                  jobFilterType === company ? 'bg-gray-100' : ''
-                                }`}
-                                onClick={() => handleSelectJobFilter(company)}
-                              >
-                                <Building2 className="h-4 w-4 mr-2 text-gray-400" />
-                                <span>{company}</span>
-                              </button>
+                              <SelectItem key={`company-${company}`} value={company}>
+                                {company}
+                              </SelectItem>
                             ))}
-                          </>
+                          </SelectGroup>
                         )}
                         {jobFilterSuggestions.locations.length > 0 && (
-                          <>
-                            <div className="px-2 py-1 mt-2">
-                              <p className="text-xs font-semibold text-gray-400 uppercase">Location</p>
-                            </div>
+                          <SelectGroup>
+                            <SelectLabel>Location</SelectLabel>
                             {jobFilterSuggestions.locations.map((location) => (
-                              <button
-                                key={`location-${location}`}
-                                className={`w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center ${
-                                  jobFilterType === location ? 'bg-gray-100' : ''
-                                }`}
-                                onClick={() => handleSelectJobFilter(location)}
-                              >
-                                <MapPin className="h-4 w-4 mr-2 text-gray-400" />
-                                <span>{location}</span>
-                              </button>
+                              <SelectItem key={`location-${location}`} value={location}>
+                                {location}
+                              </SelectItem>
                             ))}
-                          </>
+                          </SelectGroup>
                         )}
-                        {jobFilterType && (
-                          <div className="border-t mt-2">
-                            <button
-                              className="w-full text-left px-4 py-2 hover:bg-gray-50 text-red-600"
-                              onClick={() => handleSelectJobFilter('')}
-                            >
-                              Clear Filter
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    )}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 
@@ -1290,4 +1259,3 @@ export default function Dashboard({ onNavigate, auth, onProfileUpdate, onSession
     </div>
   );
 }
-

@@ -4,7 +4,8 @@ import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
-import { AlertCircle, ArrowLeft, FileText, Loader2, Save, Search } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { AlertCircle, ArrowLeft, FileText, Loader2, Save, Search, SlidersHorizontal } from 'lucide-react';
 import { getApiBaseUrl } from '../utils/api';
 
 const API_BASE_URL = getApiBaseUrl();
@@ -41,6 +42,7 @@ export default function MemberInfo({ onNavigate, auth, onProfileUpdate, onSessio
   const [errorMessage, setErrorMessage] = useState('');
   const [mustCompleteProfile, setMustCompleteProfile] = useState(false);
   const [profileChecked, setProfileChecked] = useState(false);
+  const [yearFilter, setYearFilter] = useState('');
   const defaultSessionMessage = 'Your session expired. Please log in again.';
 
   const handleExpiredSession = (message) => {
@@ -139,15 +141,17 @@ export default function MemberInfo({ onNavigate, auth, onProfileUpdate, onSessio
       const major = member.major || '';
       const year = member.year || '';
       const interests = Array.isArray(member.interests) ? member.interests : [];
-      if (!query) return true;
-      return (
+      const matchesQuery =
+        !query ||
         name.toLowerCase().includes(query) ||
         major.toLowerCase().includes(query) ||
         year.toLowerCase().includes(query) ||
-        interests.some((interest) => interest.toLowerCase().includes(query))
-      );
+        interests.some((interest) => interest.toLowerCase().includes(query));
+
+      const matchesYear = !yearFilter || year === yearFilter;
+      return matchesQuery && matchesYear;
     });
-  }, [searchQuery, members]);
+  }, [searchQuery, members, yearFilter]);
 
   const activeMember =
     members.find((member) => member.email === selectedMemberEmail) ||
@@ -159,8 +163,15 @@ export default function MemberInfo({ onNavigate, auth, onProfileUpdate, onSessio
     if (!member) return;
     setSelectedMemberEmail(member.email);
     setSearchQuery(member.name);
-    setIsDropdownOpen(false);
   };
+
+  useEffect(() => {
+    if (!filteredMembers.length) return;
+    const inFiltered = filteredMembers.some((member) => member.email === selectedMemberEmail);
+    if (!inFiltered) {
+      setSelectedMemberEmail(filteredMembers[0].email);
+    }
+  }, [filteredMembers, selectedMemberEmail]);
 
   const handleProfileChange = (event) => {
     const { name, value } = event.target;
@@ -302,22 +313,26 @@ export default function MemberInfo({ onNavigate, auth, onProfileUpdate, onSessio
             <label className="text-sm font-medium" htmlFor="year">
               Year
             </label>
-            <div className="relative">
-              <select
-                id="year"
-                name="year"
-                value={profileForm.year}
-                onChange={handleProfileChange}
-                className="w-full rounded-md border px-3 py-2"
-              >
-                <option value="">Select year</option>
+            <Select
+              value={profileForm.year || ''}
+              onValueChange={(value) =>
+                setProfileForm((prev) => ({
+                  ...prev,
+                  year: value,
+                }))
+              }
+            >
+              <SelectTrigger className="w-full border-2 border-[#733635]/30 bg-white shadow-sm focus:ring-2 focus:ring-[#733635] focus:border-[#733635]">
+                <SelectValue placeholder="Select year" />
+              </SelectTrigger>
+              <SelectContent>
                 {YEAR_OPTIONS.map((option) => (
-                  <option key={option} value={option}>
+                  <SelectItem key={option} value={option}>
                     {option}
-                  </option>
+                  </SelectItem>
                 ))}
-              </select>
-            </div>
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2 col-span-1 md:col-span-2">
             <label className="text-sm font-medium" htmlFor="interests">
@@ -447,203 +462,249 @@ export default function MemberInfo({ onNavigate, auth, onProfileUpdate, onSessio
 
         {!mustCompleteProfile && (
           <>
-            <div className="max-w-5xl mx-auto w-full">
-              <Card>
-                <CardHeader className="space-y-1">
-                  <CardTitle style={{ color: '#733635' }}>Member Database</CardTitle>
-                  <p className="text-sm text-gray-600">Search by name, major, year, or interests to find similar members.</p>
+            <div className="max-w-6xl mx-auto w-full">
+              <Card className="shadow-xl border-2 border-white/70 bg-white/90 backdrop-blur">
+                <CardHeader className="space-y-3">
+                  <div className="flex flex-col gap-2">
+                    <CardTitle style={{ color: '#733635' }} className="text-2xl md:text-3xl">
+                      Member Database
+                    </CardTitle>
+                    <p className="text-sm text-gray-600">
+                      Search by name, major, year, or interests. Use the filters to quickly narrow down the list.
+                    </p>
+                  </div>
+                  <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="w-full lg:max-w-xl">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#733635]" />
+                        <Input
+                          type="text"
+                          placeholder="Search members (e.g., Computer Science, leadership, senior)"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="pl-9 pr-4 py-3 border-2 border-amber-200 focus:border-[#733635] focus:ring-2 focus:ring-[#733635]/40 rounded-lg shadow-sm"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-fit">
+                      <div className="w-full sm:w-56">
+                        <label className="text-xs font-semibold text-gray-600 flex items-center gap-2 mb-1 uppercase tracking-wide">
+                          <SlidersHorizontal className="h-4 w-4" />
+                          Filter by Year
+                        </label>
+                        <Select value={yearFilter} onValueChange={setYearFilter}>
+                          <SelectTrigger className="w-full border-2 border-[#733635]/30 bg-white shadow-sm focus:ring-2 focus:ring-[#733635] focus:border-[#733635]">
+                            <SelectValue placeholder="All years" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">All years</SelectItem>
+                            {YEAR_OPTIONS.map((option) => (
+                              <SelectItem key={option} value={option}>
+                                {option}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setSearchQuery('');
+                          setYearFilter('');
+                        }}
+                        className="border-[#733635]/40 text-[#733635]"
+                      >
+                        Clear filters
+                      </Button>
+                    </div>
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center gap-3">
-                    <Search className="h-4 w-4 text-gray-400" />
-                    <Input
-                      type="text"
-                      placeholder="Search members (e.g., Computer Science, leadership, senior)"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                  </div>
-                  <p className="text-xs text-gray-500 mt-2">
+                  <p className="text-xs text-gray-500 mb-4">
                     Showing {filteredMembers.length} of {members.length} members
+                    {yearFilter ? ` • Year: ${yearFilter}` : ''}
                   </p>
-                  <div className="mt-4 max-h-[520px] overflow-y-auto pr-1 space-y-2">
-                    {loadingMembers ? (
-                      <div className="flex items-center gap-2 text-gray-600 text-sm px-2 py-3">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Loading members...
+                  <div className="grid grid-cols-1 xl:grid-cols-[1.05fr_1.2fr] gap-6">
+                    <div className="space-y-3">
+                      <div className="rounded-2xl border border-amber-100 bg-gradient-to-b from-white via-amber-50/40 to-white shadow-inner max-h-[520px] overflow-y-auto">
+                        {loadingMembers ? (
+                          <div className="flex items-center gap-2 text-gray-600 text-sm px-4 py-3">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Loading members...
+                          </div>
+                        ) : filteredMembers.length > 0 ? (
+                          filteredMembers.map((member) => {
+                            const interests = Array.isArray(member.interests) ? member.interests : [];
+                            const isSelected = member.email === selectedMemberEmail;
+                            return (
+                              <button
+                                key={member.email}
+                                className={`w-full text-left border-b border-amber-100/60 px-4 py-3 transition hover:bg-rose-50/40 ${
+                                  isSelected ? 'bg-rose-50/80 shadow-sm' : 'bg-transparent'
+                                }`}
+                                onClick={() => handleSelectMember(member.email)}
+                              >
+                                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                                  <div className="space-y-1">
+                                    <p className="font-semibold" style={{ color: '#733635' }}>
+                                      {member.name}
+                                    </p>
+                                    <p className="text-sm text-gray-600">
+                                      {member.major || 'Major TBD'}
+                                    </p>
+                                    <p className="text-xs text-gray-500 break-all">{member.email}</p>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <Badge
+                                      variant="outline"
+                                      className="w-fit"
+                                      style={{ borderColor: '#733635', color: '#733635' }}
+                                    >
+                                      {member.year || 'Year TBD'}
+                                    </Badge>
+                                  </div>
+                                </div>
+                                <div className="mt-2 flex flex-wrap gap-2">
+                                  {interests.length ? (
+                                    interests.map((interest) => (
+                                      <Badge
+                                        key={interest}
+                                        className="text-xs"
+                                        style={{
+                                          backgroundColor: 'rgba(115, 54, 53, 0.08)',
+                                          color: '#733635',
+                                          border: 'none',
+                                        }}
+                                      >
+                                        {interest}
+                                      </Badge>
+                                    ))
+                                  ) : (
+                                    <span className="text-xs text-gray-500">No interests listed yet.</span>
+                                  )}
+                                </div>
+                              </button>
+                            );
+                          })
+                        ) : (
+                          <div className="text-sm text-gray-500 px-4 py-6 text-center">
+                            No members match “{searchQuery || 'your filters'}”.
+                          </div>
+                        )}
                       </div>
-                    ) : filteredMembers.length > 0 ? (
-                      filteredMembers.map((member) => {
-                        const interests = Array.isArray(member.interests) ? member.interests : [];
-                        const isSelected = member.email === selectedMemberEmail;
-                        return (
-                          <button
-                            key={member.email}
-                            className={`w-full text-left rounded-lg border px-4 py-3 transition hover:shadow-sm ${
-                              isSelected ? 'border-[#733635] bg-rose-50/70' : 'border-gray-200 bg-white'
-                            }`}
-                            onClick={() => handleSelectMember(member.email)}
-                          >
-                            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
-                              <div>
-                                <p className="font-semibold" style={{ color: '#733635' }}>
-                                  {member.name}
-                                </p>
-                                <p className="text-sm text-gray-600">
-                                  {member.major || 'Major TBD'}
-                                </p>
-                                <p className="text-xs text-gray-500 break-all">{member.email}</p>
+                      {errorMessage && (
+                        <div className="text-sm text-red-600 px-2">
+                          {errorMessage}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="min-h-[240px]">
+                      {activeMember ? (
+                        <Card className="shadow-lg h-full border border-amber-100">
+                          <CardHeader className="flex flex-col gap-4">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4">
+                              <div
+                                className="w-20 h-20 rounded-full overflow-hidden border border-gray-200 bg-gradient-to-br from-amber-50 via-white to-rose-50 relative"
+                                aria-hidden="true"
+                              >
+                                <div className="absolute inset-0 flex items-center justify-center text-xl font-semibold text-gray-500">
+                                  {(activeMember.name || '?').charAt(0).toUpperCase()}
+                                </div>
+                                {activeMember.profileImageUrl ? (
+                                  <img
+                                    src={activeMember.profileImageUrl}
+                                    alt={`${activeMember.name || 'Member'} avatar`}
+                                    className="w-full h-full object-cover relative z-10"
+                                    onError={(e) => {
+                                      e.currentTarget.style.display = 'none';
+                                    }}
+                                  />
+                                ) : null}
                               </div>
-                              <div className="flex items-center gap-2">
-                                <Badge
-                                  variant="outline"
-                                  className="w-fit"
-                                  style={{ borderColor: '#733635', color: '#733635' }}
-                                >
-                                  {member.year || 'Year TBD'}
-                                </Badge>
+                              <div className="space-y-1">
+                                <CardTitle style={{ color: '#733635' }} className="text-3xl">
+                                  {activeMember.name}
+                                </CardTitle>
+                                <p className="text-gray-600 break-all">{activeMember.email}</p>
+                                {activeMember.year && (
+                                  <Badge
+                                    variant="outline"
+                                    className="w-fit mt-2"
+                                    style={{ borderColor: '#733635', color: '#733635' }}
+                                  >
+                                    {activeMember.year}
+                                  </Badge>
+                                )}
                               </div>
                             </div>
-                            <div className="mt-2 flex flex-wrap gap-2">
-                              {interests.length ? (
-                                interests.map((interest) => (
-                                  <Badge
-                                    key={interest}
-                                    className="text-xs"
-                                    style={{
-                                      backgroundColor: 'rgba(115, 54, 53, 0.08)',
-                                      color: '#733635',
-                                      border: 'none',
-                                    }}
-                                  >
-                                    {interest}
-                                  </Badge>
-                                ))
-                              ) : (
-                                <span className="text-xs text-gray-500">No interests listed yet.</span>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-6">
+                              {activeMember.major && (
+                                <div>
+                                  <p className="text-sm uppercase tracking-wide text-gray-500">
+                                    Major
+                                  </p>
+                                  <p className="text-lg">{activeMember.major}</p>
+                                </div>
+                              )}
+                              <div>
+                                <p className="text-sm uppercase tracking-wide text-gray-500 mb-3">
+                                  Interests
+                                </p>
+                                <div className="flex flex-wrap gap-2">
+                                  {activeMember.interests?.length ? (
+                                    activeMember.interests.map((interest) => (
+                                      <Badge
+                                        key={interest}
+                                        className="text-xs"
+                                        style={{
+                                          backgroundColor: 'rgba(115, 54, 53, 0.1)',
+                                          color: '#733635',
+                                          border: 'none',
+                                        }}
+                                      >
+                                        {interest}
+                                      </Badge>
+                                    ))
+                                  ) : (
+                                    <span className="text-gray-500 text-sm">No interests listed.</span>
+                                  )}
+                                </div>
+                              </div>
+                              {activeMember.resumeUrl && (
+                                <a
+                                  href={activeMember.resumeUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="inline-flex items-center gap-2 text-sm hover:underline"
+                                  style={{ color: '#733635' }}
+                                >
+                                  <FileText className="h-4 w-4" />
+                                  View Resume
+                                </a>
                               )}
                             </div>
-                          </button>
-                        );
-                      })
-                    ) : (
-                      <div className="text-sm text-gray-500 px-2 py-3">
-                        No members match “{searchQuery}”.
-                      </div>
-                    )}
+                          </CardContent>
+                        </Card>
+                      ) : (
+                        <div className="text-center py-12">
+                          {loadingMembers ? (
+                            <p className="text-gray-600 text-lg flex items-center justify-center gap-2">
+                              <Loader2 className="h-5 w-5 animate-spin" />
+                              Loading member details...
+                            </p>
+                          ) : (
+                            <p className="text-gray-600 text-lg">No members available.</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             </div>
-
-            {errorMessage && (
-              <div className="text-center text-red-600">
-                {errorMessage}
-              </div>
-            )}
-
-            {activeMember ? (
-              <div className="max-w-4xl mx-auto">
-                <Card className="shadow-lg">
-                  <CardHeader className="flex flex-col gap-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4">
-                      <div
-                        className="w-20 h-20 rounded-full overflow-hidden border border-gray-200 bg-gradient-to-br from-amber-50 via-white to-rose-50 relative"
-                        aria-hidden="true"
-                      >
-                        <div className="absolute inset-0 flex items-center justify-center text-xl font-semibold text-gray-500">
-                          {(activeMember.name || '?').charAt(0).toUpperCase()}
-                        </div>
-                        {activeMember.profileImageUrl ? (
-                          <img
-                            src={activeMember.profileImageUrl}
-                            alt={`${activeMember.name || 'Member'} avatar`}
-                            className="w-full h-full object-cover relative z-10"
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                            }}
-                          />
-                        ) : null}
-                      </div>
-                      <div className="space-y-1">
-                        <CardTitle style={{ color: '#733635' }} className="text-3xl">
-                          {activeMember.name}
-                        </CardTitle>
-                        <p className="text-gray-600 break-all">{activeMember.email}</p>
-                        {activeMember.year && (
-                          <Badge
-                            variant="outline"
-                            className="w-fit mt-2"
-                            style={{ borderColor: '#733635', color: '#733635' }}
-                          >
-                            {activeMember.year}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-6">
-                      {activeMember.major && (
-                        <div>
-                          <p className="text-sm uppercase tracking-wide text-gray-500">
-                            Major
-                          </p>
-                          <p className="text-lg">{activeMember.major}</p>
-                        </div>
-                      )}
-                      <div>
-                        <p className="text-sm uppercase tracking-wide text-gray-500 mb-3">
-                          Interests
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {activeMember.interests?.length ? (
-                            activeMember.interests.map((interest) => (
-                              <Badge
-                                key={interest}
-                                className="text-xs"
-                                style={{
-                                  backgroundColor: 'rgba(115, 54, 53, 0.1)',
-                                  color: '#733635',
-                                  border: 'none',
-                                }}
-                              >
-                                {interest}
-                              </Badge>
-                            ))
-                          ) : (
-                            <span className="text-gray-500 text-sm">No interests listed.</span>
-                          )}
-                        </div>
-                      </div>
-                      {activeMember.resumeUrl && (
-                        <a
-                          href={activeMember.resumeUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center gap-2 text-sm hover:underline"
-                          style={{ color: '#733635' }}
-                        >
-                          <FileText className="h-4 w-4" />
-                          View Resume
-                        </a>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                {loadingMembers ? (
-                  <p className="text-gray-600 text-lg flex items-center justify-center gap-2">
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    Loading member details...
-                  </p>
-                ) : (
-                  <p className="text-gray-600 text-lg">No members available.</p>
-                )}
-              </div>
-            )}
           </>
         )}
       </div>

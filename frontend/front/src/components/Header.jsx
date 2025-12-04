@@ -27,49 +27,44 @@ export default function Header({ onNavigate, isAuthenticated, onLogout, user }) 
 
   const renderMenuButtons = (isMobile = false) => (
     <>
-      <Button
-        variant="outline"
-        onClick={() => navigateAndClose('company-login')}
-        className={`${sharedOutlineClasses} ${isMobile ? 'w-full justify-center' : ''}`}
-        style={outlineStyles}
-      >
-        Partner Login
-      </Button>
-      {isAuthenticated ? (
+      {!isAuthenticated && (
         <>
           <Button
             variant="outline"
-            onClick={() => navigateAndClose('dashboard')}
+            onClick={() => navigateAndClose('company-login')}
             className={`${sharedOutlineClasses} ${isMobile ? 'w-full justify-center' : ''}`}
             style={outlineStyles}
           >
-            Dashboard
+            Partner Login
           </Button>
           <Button
             variant="outline"
-            onClick={() => navigateAndClose('member-directory')}
+            onClick={() => navigateAndClose('member-login')}
             className={`${sharedOutlineClasses} ${isMobile ? 'w-full justify-center' : ''}`}
             style={outlineStyles}
           >
-            Member Directory
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={logoutAndClose}
-            className={`hover:bg-white/40 ${isMobile ? 'w-full justify-center' : ''}`}
-            style={{ color: '#733635' }}
-          >
-            Logout{user?.name ? ` (${user.name.split(' ')[0]})` : ''}
+            Member Login
           </Button>
         </>
-      ) : (
+      )}
+      {isAuthenticated && (
         <Button
           variant="outline"
-          onClick={() => navigateAndClose('member-login')}
+          onClick={() => navigateAndClose('dashboard')}
           className={`${sharedOutlineClasses} ${isMobile ? 'w-full justify-center' : ''}`}
           style={outlineStyles}
         >
-          Member Login
+          Dashboard
+        </Button>
+      )}
+      {isAuthenticated && (
+        <Button
+          variant="ghost"
+          onClick={logoutAndClose}
+          className={`hover:bg-white/40 ${isMobile ? 'w-full justify-center' : ''}`}
+          style={{ color: '#733635' }}
+        >
+          Logout{user?.name ? ` (${user.name.split(' ')[0]})` : ''}
         </Button>
       )}
       <Button

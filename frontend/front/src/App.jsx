@@ -6,7 +6,6 @@ import CompanyRegister from './components/CompanyRegister';
 import MemberLogin from './components/MemberLogin';
 import MemberRegister from './components/MemberRegister';
 import ContactUs from './components/ContactUs';
-import MemberInfo from './components/MemberInfo';
 import Dashboard from './components/Dashboard';
 
 const AUTH_STORAGE_KEY = 'csiet.auth';
@@ -83,6 +82,10 @@ export default function App() {
       setCurrentPage('member-login');
       return;
     }
+    if (destination === 'member-directory') {
+      setCurrentPage('dashboard');
+      return;
+    }
     setCurrentPage(destination);
   };
 
@@ -127,15 +130,6 @@ export default function App() {
         );
       case 'contact':
         return <ContactUs onNavigate={handleNavigate} />;
-      case 'member-directory':
-        return (
-          <MemberInfo
-            onNavigate={handleNavigate}
-            auth={authState}
-            onProfileUpdate={handleProfileUpdate}
-            onSessionExpired={handleSessionExpired}
-          />
-        );
       case 'dashboard':
         return (
           <Dashboard
