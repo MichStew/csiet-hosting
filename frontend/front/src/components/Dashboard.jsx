@@ -525,25 +525,25 @@ export default function Dashboard({ onNavigate, auth, onProfileUpdate, onSession
                         <label className="text-sm font-medium" htmlFor="year">
                           Year
                         </label>
-                        <Select
-                          value={profileForm.year || ''}
-                          onValueChange={(value) =>
-                            setProfileForm((prev) => ({
-                              ...prev,
-                              year: value,
-                            }))
-                          }
-                        >
-                          <SelectTrigger className="w-full border-2 border-[#733635]/30 bg-white shadow-sm focus:ring-2 focus:ring-[#733635] focus:border-[#733635]">
-                            <SelectValue placeholder="Select year" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="">Select year</SelectItem>
-                            {YEAR_OPTIONS.map((option) => (
-                              <SelectItem key={option} value={option}>
-                                {option}
-                              </SelectItem>
-                            ))}
+                      <Select
+                        value={profileForm.year || 'none'}
+                        onValueChange={(value) =>
+                          setProfileForm((prev) => ({
+                            ...prev,
+                            year: value === 'none' ? '' : value,
+                          }))
+                        }
+                      >
+                        <SelectTrigger className="w-full border-2 border-[#733635]/30 bg-white shadow-sm focus:ring-2 focus:ring-[#733635] focus:border-[#733635]">
+                          <SelectValue placeholder="Select year" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Select year</SelectItem>
+                          {YEAR_OPTIONS.map((option) => (
+                            <SelectItem key={option} value={option}>
+                              {option}
+                            </SelectItem>
+                          ))}
                           </SelectContent>
                         </Select>
                       </div>
@@ -997,12 +997,15 @@ export default function Dashboard({ onNavigate, auth, onProfileUpdate, onSession
                     <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2 block">
                       Quick filter
                     </label>
-                    <Select value={jobFilterType} onValueChange={handleSelectJobFilter}>
+                    <Select
+                      value={jobFilterType || 'all'}
+                      onValueChange={(value) => handleSelectJobFilter(value === 'all' ? '' : value)}
+                    >
                       <SelectTrigger className="w-full border-2 border-[#733635]/30 bg-white shadow-sm focus:ring-2 focus:ring-[#733635] focus:border-[#733635]">
                         <SelectValue placeholder="Filter by Type, Company, or Location" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All job postings</SelectItem>
+                        <SelectItem value="all">All job postings</SelectItem>
                         {jobFilterSuggestions.types.length > 0 && (
                           <SelectGroup>
                             <SelectLabel>Job Type</SelectLabel>

@@ -42,7 +42,7 @@ export default function MemberInfo({ onNavigate, auth, onProfileUpdate, onSessio
   const [errorMessage, setErrorMessage] = useState('');
   const [mustCompleteProfile, setMustCompleteProfile] = useState(false);
   const [profileChecked, setProfileChecked] = useState(false);
-  const [yearFilter, setYearFilter] = useState('');
+  const [yearFilter, setYearFilter] = useState('all');
   const defaultSessionMessage = 'Your session expired. Please log in again.';
 
   const handleExpiredSession = (message) => {
@@ -148,7 +148,7 @@ export default function MemberInfo({ onNavigate, auth, onProfileUpdate, onSessio
         year.toLowerCase().includes(query) ||
         interests.some((interest) => interest.toLowerCase().includes(query));
 
-      const matchesYear = !yearFilter || year === yearFilter;
+      const matchesYear = yearFilter === 'all' || year === yearFilter;
       return matchesQuery && matchesYear;
     });
   }, [searchQuery, members, yearFilter]);
@@ -492,12 +492,15 @@ export default function MemberInfo({ onNavigate, auth, onProfileUpdate, onSessio
                           <SlidersHorizontal className="h-4 w-4" />
                           Filter by Year
                         </label>
-                        <Select value={yearFilter} onValueChange={setYearFilter}>
+                        <Select
+                          value={yearFilter}
+                          onValueChange={(value) => setYearFilter(value || 'all')}
+                        >
                           <SelectTrigger className="w-full border-2 border-[#733635]/30 bg-white shadow-sm focus:ring-2 focus:ring-[#733635] focus:border-[#733635]">
                             <SelectValue placeholder="All years" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">All years</SelectItem>
+                            <SelectItem value="all">All years</SelectItem>
                             {YEAR_OPTIONS.map((option) => (
                               <SelectItem key={option} value={option}>
                                 {option}
@@ -510,7 +513,7 @@ export default function MemberInfo({ onNavigate, auth, onProfileUpdate, onSessio
                         variant="outline"
                         onClick={() => {
                           setSearchQuery('');
-                          setYearFilter('');
+                          setYearFilter('all');
                         }}
                         className="border-[#733635]/40 text-[#733635]"
                       >
