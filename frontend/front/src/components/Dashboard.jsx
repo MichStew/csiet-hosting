@@ -7,6 +7,14 @@ import { Badge } from './ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogFooter 
+} from './ui/dialog';
+import { 
   ArrowLeft, 
   User, 
   Users, 
@@ -18,7 +26,10 @@ import {
   Mail,
   Phone,
   Building2,
-  Calendar
+  Calendar,
+  MapPin,
+  Clock,
+  ChevronDown
 } from 'lucide-react';
 import { getApiBaseUrl } from '../utils/api';
 
@@ -56,6 +67,11 @@ export default function Dashboard({ onNavigate, auth, onProfileUpdate, onSession
   const [jobPostings, setJobPostings] = useState([]);
   const [loadingJobs, setLoadingJobs] = useState(false);
   const [jobSearchQuery, setJobSearchQuery] = useState('');
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [isJobDialogOpen, setIsJobDialogOpen] = useState(false);
+  const [jobFilterType, setJobFilterType] = useState('');
+  const [isJobFilterDropdownOpen, setIsJobFilterDropdownOpen] = useState(false);
+  const jobFilterDropdownRef = useRef(null);
 
   const [errorMessage, setErrorMessage] = useState('');
   const defaultSessionMessage = 'Your session expired. Please log in again.';
@@ -195,6 +211,20 @@ export default function Dashboard({ onNavigate, auth, onProfileUpdate, onSession
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isDropdownOpen]);
 
+  // Handle job filter dropdown outside click
+  useEffect(() => {
+    if (!isJobFilterDropdownOpen) {
+      return undefined;
+    }
+    const handleClickOutside = (event) => {
+      if (jobFilterDropdownRef.current && !jobFilterDropdownRef.current.contains(event.target)) {
+        setIsJobFilterDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isJobFilterDropdownOpen]);
+
   // Filter members
   const filteredMembers = useMemo(() => {
     const query = searchQuery.toLowerCase();
@@ -210,20 +240,55 @@ export default function Dashboard({ onNavigate, auth, onProfileUpdate, onSession
     });
   }, [searchQuery, members]);
 
+  // Get unique filter suggestions
+  const jobFilterSuggestions = useMemo(() => {
+    const types = [...new Set(jobPostings.map(job => job.type).filter(Boolean))];
+    const companies = [...new Set(jobPostings.map(job => job.company).filter(Boolean))];
+    const locations = [...new Set(jobPostings.map(job => job.location).filter(Boolean))];
+    return { types, companies, locations };
+  }, [jobPostings]);
+
   // Filter job postings
   const filteredJobs = useMemo(() => {
+    let filtered = jobPostings;
+    
+    // Apply filter dropdown selection
+    if (jobFilterType) {
+      filtered = filtered.filter((job) => {
+        return (
+          job.type === jobFilterType ||
+          job.company === jobFilterType ||
+          job.location === jobFilterType
+        );
+      });
+    }
+    
+    // Apply search query
     const query = jobSearchQuery.toLowerCase();
-    return jobPostings.filter((job) => {
-      if (!query) return true;
-      return (
-        job.title.toLowerCase().includes(query) ||
-        job.company.toLowerCase().includes(query) ||
-        job.location.toLowerCase().includes(query) ||
-        job.description.toLowerCase().includes(query) ||
-        job.type.toLowerCase().includes(query)
-      );
-    });
-  }, [jobSearchQuery, jobPostings]);
+    if (query) {
+      filtered = filtered.filter((job) => {
+        return (
+          job.title.toLowerCase().includes(query) ||
+          job.company.toLowerCase().includes(query) ||
+          job.location.toLowerCase().includes(query) ||
+          job.description.toLowerCase().includes(query) ||
+          job.type.toLowerCase().includes(query)
+        );
+      });
+    }
+    
+    return filtered;
+  }, [jobSearchQuery, jobPostings, jobFilterType]);
+
+  const handleViewJobDetails = (job) => {
+    setSelectedJob(job);
+    setIsJobDialogOpen(true);
+  };
+
+  const handleSelectJobFilter = (filterValue) => {
+    setJobFilterType(filterValue === jobFilterType ? '' : filterValue);
+    setIsJobFilterDropdownOpen(false);
+  };
 
   const activeMember =
     members.find((member) => member.email === selectedMemberEmail) ||
@@ -826,8 +891,9 @@ export default function Dashboard({ onNavigate, auth, onProfileUpdate, onSession
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {/* Search */}
-                <div className="mb-6">
+                {/* Search and Filter */}
+                <div className="mb-6 space-y-4">
+                  {/* Search Bar */}
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <Input
@@ -838,6 +904,95 @@ export default function Dashboard({ onNavigate, auth, onProfileUpdate, onSession
                       className="pl-10"
                     />
                   </div>
+                  
+                  {/* Filter Dropdown with Suggestions */}
+                  <div ref={jobFilterDropdownRef} className="relative">
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between text-left font-normal bg-white"
+                      style={{ borderColor: '#733635', color: '#733635' }}
+                      onClick={() => setIsJobFilterDropdownOpen((prev) => !prev)}
+                    >
+                      <span>
+                        {jobFilterType ? `Filter: ${jobFilterType}` : 'Filter by Type, Company, or Location'}
+                      </span>
+                      <ChevronDown className={`h-4 w-4 transition-transform ${isJobFilterDropdownOpen ? 'rotate-180' : ''}`} />
+                    </Button>
+                    {isJobFilterDropdownOpen && (
+                      <div className="absolute mt-2 w-full bg-white border rounded-lg shadow-lg overflow-hidden z-10 max-h-64 overflow-y-auto">
+                        <div className="p-2">
+                          <p className="text-xs font-semibold text-gray-500 uppercase px-2 py-1">Filter Suggestions</p>
+                        </div>
+                        {jobFilterSuggestions.types.length > 0 && (
+                          <>
+                            <div className="px-2 py-1">
+                              <p className="text-xs font-semibold text-gray-400 uppercase">Job Type</p>
+                            </div>
+                            {jobFilterSuggestions.types.map((type) => (
+                              <button
+                                key={`type-${type}`}
+                                className={`w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center ${
+                                  jobFilterType === type ? 'bg-gray-100' : ''
+                                }`}
+                                onClick={() => handleSelectJobFilter(type)}
+                              >
+                                <Briefcase className="h-4 w-4 mr-2 text-gray-400" />
+                                <span>{type}</span>
+                              </button>
+                            ))}
+                          </>
+                        )}
+                        {jobFilterSuggestions.companies.length > 0 && (
+                          <>
+                            <div className="px-2 py-1 mt-2">
+                              <p className="text-xs font-semibold text-gray-400 uppercase">Company</p>
+                            </div>
+                            {jobFilterSuggestions.companies.map((company) => (
+                              <button
+                                key={`company-${company}`}
+                                className={`w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center ${
+                                  jobFilterType === company ? 'bg-gray-100' : ''
+                                }`}
+                                onClick={() => handleSelectJobFilter(company)}
+                              >
+                                <Building2 className="h-4 w-4 mr-2 text-gray-400" />
+                                <span>{company}</span>
+                              </button>
+                            ))}
+                          </>
+                        )}
+                        {jobFilterSuggestions.locations.length > 0 && (
+                          <>
+                            <div className="px-2 py-1 mt-2">
+                              <p className="text-xs font-semibold text-gray-400 uppercase">Location</p>
+                            </div>
+                            {jobFilterSuggestions.locations.map((location) => (
+                              <button
+                                key={`location-${location}`}
+                                className={`w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center ${
+                                  jobFilterType === location ? 'bg-gray-100' : ''
+                                }`}
+                                onClick={() => handleSelectJobFilter(location)}
+                              >
+                                <MapPin className="h-4 w-4 mr-2 text-gray-400" />
+                                <span>{location}</span>
+                              </button>
+                            ))}
+                          </>
+                        )}
+                        {jobFilterType && (
+                          <div className="border-t mt-2">
+                            <button
+                              className="w-full text-left px-4 py-2 hover:bg-gray-50 text-red-600"
+                              onClick={() => handleSelectJobFilter('')}
+                            >
+                              Clear Filter
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {loadingJobs ? (
@@ -846,55 +1001,83 @@ export default function Dashboard({ onNavigate, auth, onProfileUpdate, onSession
                     <p className="text-gray-600">Loading job postings...</p>
                   </div>
                 ) : filteredJobs.length > 0 ? (
-                  <div className="space-y-4">
-                    {filteredJobs.map((job) => (
-                      <Card key={job.id} className="hover:shadow-lg transition-shadow">
-                        <CardHeader>
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <CardTitle className="text-xl">{job.title}</CardTitle>
-                              <CardDescription className="flex items-center gap-4 mt-2">
-                                <span className="flex items-center gap-1">
-                                  <Building2 className="h-4 w-4" />
-                                  {job.company}
-                                </span>
-                                <span className="flex items-center gap-1">
-                                  <Briefcase className="h-4 w-4" />
-                                  {job.location}
-                                </span>
-                                <span className="flex items-center gap-1">
-                                  <Calendar className="h-4 w-4" />
-                                  {new Date(job.postedDate).toLocaleDateString()}
-                                </span>
-                              </CardDescription>
+                  <>
+                    <div className="mb-4">
+                      <p className="text-sm text-gray-600">
+                        Showing {filteredJobs.length} of {jobPostings.length} job postings
+                        {jobFilterType && ` • Filtered by: ${jobFilterType}`}
+                      </p>
+                    </div>
+                    <div className="space-y-4">
+                      {filteredJobs.map((job) => (
+                        <Card 
+                          key={job.id} 
+                          className="hover:shadow-lg transition-shadow cursor-pointer"
+                          onClick={() => handleViewJobDetails(job)}
+                        >
+                          <CardHeader>
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <CardTitle className="text-xl">{job.title}</CardTitle>
+                                <CardDescription className="flex items-center gap-4 mt-2">
+                                  <span className="flex items-center gap-1">
+                                    <Building2 className="h-4 w-4" />
+                                    {job.company}
+                                  </span>
+                                  <span className="flex items-center gap-1">
+                                    <MapPin className="h-4 w-4" />
+                                    {job.location}
+                                  </span>
+                                  <span className="flex items-center gap-1">
+                                    <Calendar className="h-4 w-4" />
+                                    {new Date(job.postedDate).toLocaleDateString()}
+                                  </span>
+                                </CardDescription>
+                              </div>
+                              <Badge
+                                variant="outline"
+                                style={{ borderColor: '#733635', color: '#733635' }}
+                              >
+                                {job.type}
+                              </Badge>
                             </div>
-                            <Badge
-                              variant="outline"
-                              style={{ borderColor: '#733635', color: '#733635' }}
-                            >
-                              {job.type}
-                            </Badge>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-gray-700">{job.description}</p>
-                          <div className="mt-4 flex gap-2">
-                            <Button
-                              variant="outline"
-                              style={{ borderColor: '#733635', color: '#733635' }}
-                            >
-                              View Details
-                            </Button>
-                            {userRole === 'member' && (
-                              <Button style={{ backgroundColor: '#733635', color: 'white' }}>
-                                Apply Now
+                          </CardHeader>
+                          <CardContent>
+                            <p className="text-gray-700" style={{
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis'
+                            }}>{job.description}</p>
+                            <div className="mt-4 flex gap-2">
+                              <Button
+                                variant="outline"
+                                style={{ borderColor: '#733635', color: '#733635' }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleViewJobDetails(job);
+                                }}
+                              >
+                                View Details
                               </Button>
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
+                              {userRole === 'member' && (
+                                <Button 
+                                  style={{ backgroundColor: '#733635', color: 'white' }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleViewJobDetails(job);
+                                  }}
+                                >
+                                  Apply Now
+                                </Button>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </>
                 ) : (
                   <div className="text-center py-12">
                     <Briefcase className="h-12 w-12 mx-auto mb-4 text-gray-400" />
@@ -911,6 +1094,125 @@ export default function Dashboard({ onNavigate, auth, onProfileUpdate, onSession
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Job Details Dialog */}
+      <Dialog open={isJobDialogOpen} onOpenChange={setIsJobDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          {selectedJob && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-2xl" style={{ color: '#733635' }}>
+                  {selectedJob.title}
+                </DialogTitle>
+                <DialogDescription className="flex items-center gap-4 pt-2">
+                  <span className="flex items-center gap-1">
+                    <Building2 className="h-4 w-4" />
+                    {selectedJob.company}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <MapPin className="h-4 w-4" />
+                    {selectedJob.location}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Calendar className="h-4 w-4" />
+                    {new Date(selectedJob.postedDate).toLocaleDateString()}
+                  </span>
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-6 py-4">
+                <div>
+                  <Badge
+                    variant="outline"
+                    className="text-sm"
+                    style={{ borderColor: '#733635', color: '#733635' }}
+                  >
+                    {selectedJob.type}
+                  </Badge>
+                </div>
+                
+                <div>
+                  <h3 className="font-semibold text-lg mb-2" style={{ color: '#733635' }}>
+                    Job Description
+                  </h3>
+                  <p className="text-gray-700 whitespace-pre-wrap">{selectedJob.description}</p>
+                </div>
+                
+                {selectedJob.requirements && (
+                  <div>
+                    <h3 className="font-semibold text-lg mb-2" style={{ color: '#733635' }}>
+                      Requirements
+                    </h3>
+                    <p className="text-gray-700 whitespace-pre-wrap">{selectedJob.requirements}</p>
+                  </div>
+                )}
+                
+                {selectedJob.salary && (
+                  <div>
+                    <h3 className="font-semibold text-lg mb-2" style={{ color: '#733635' }}>
+                      Salary
+                    </h3>
+                    <p className="text-gray-700">{selectedJob.salary}</p>
+                  </div>
+                )}
+                
+                {selectedJob.contactEmail && (
+                  <div>
+                    <h3 className="font-semibold text-lg mb-2" style={{ color: '#733635' }}>
+                      Contact Information
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-gray-500" />
+                      <a 
+                        href={`mailto:${selectedJob.contactEmail}`}
+                        className="text-blue-600 hover:underline"
+                      >
+                        {selectedJob.contactEmail}
+                      </a>
+                    </div>
+                  </div>
+                )}
+                
+                {selectedJob.contactPhone && (
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <Phone className="h-4 w-4 text-gray-500" />
+                      <a 
+                        href={`tel:${selectedJob.contactPhone}`}
+                        className="text-blue-600 hover:underline"
+                      >
+                        {selectedJob.contactPhone}
+                      </a>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              <DialogFooter>
+                {userRole === 'member' && (
+                  <Button 
+                    style={{ backgroundColor: '#733635', color: 'white' }}
+                    onClick={() => {
+                      if (selectedJob.contactEmail) {
+                        window.location.href = `mailto:${selectedJob.contactEmail}?subject=Application for ${selectedJob.title}`;
+                      }
+                    }}
+                  >
+                    Apply Now
+                  </Button>
+                )}
+                <Button 
+                  variant="outline"
+                  onClick={() => setIsJobDialogOpen(false)}
+                  style={{ borderColor: '#733635', color: '#733635' }}
+                >
+                  Close
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
