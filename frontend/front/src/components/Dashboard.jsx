@@ -27,6 +27,7 @@ import {
   Phone,
   Building2,
   Calendar,
+  ChevronsUpDown,
   MapPin,
   Clock,
   ChevronDown
@@ -420,21 +421,36 @@ export default function Dashboard({ onNavigate, auth, onProfileUpdate, onSession
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#ebe3d5' }}>
-      {/* Header */}
-      <div className="py-8 px-4" style={{ backgroundColor: '#733635' }}>
-        <div className="container mx-auto">
+      {/* Enhanced Header with Gradient */}
+      <div className="relative py-12 px-4 overflow-hidden" style={{ backgroundColor: '#733635' }}>
+        {/* Decorative background elements */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
+        </div>
+        <div className="container mx-auto relative z-10">
           <Button
             variant="ghost"
             onClick={() => onNavigate('home')}
-            className="text-white hover:bg-white/10 mb-6"
+            className="text-white hover:bg-white/20 mb-6 transition-all duration-200 backdrop-blur-sm"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Home
           </Button>
-          <h1 className="text-white text-center mb-2 text-3xl font-bold">Dashboard</h1>
-          <p className="text-white/80 text-center">
-            Welcome back, {user?.name || 'User'} • {getRoleDisplayName(userRole)}
-          </p>
+          <div className="text-center">
+            <h1 className="text-white mb-3 text-4xl md:text-5xl font-bold tracking-tight drop-shadow-lg">
+              Dashboard
+            </h1>
+            <div className="flex items-center justify-center gap-3 flex-wrap">
+              <p className="text-white/90 text-lg font-medium">
+                Welcome back, <span className="font-bold">{user?.name || 'User'}</span>
+              </p>
+              <span className="text-white/60">•</span>
+              <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm px-4 py-1.5 text-sm font-semibold">
+                {getRoleDisplayName(userRole)}
+              </Badge>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -446,31 +462,47 @@ export default function Dashboard({ onNavigate, auth, onProfileUpdate, onSession
         )}
 
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full max-w-2xl mx-auto mb-8 grid-cols-3">
-            <TabsTrigger value="profile" className="flex items-center gap-2">
+          <TabsList className="grid w-full max-w-2xl mx-auto mb-10 grid-cols-3 bg-white/80 backdrop-blur-sm shadow-lg border-2 border-white/50 rounded-xl p-1.5">
+            <TabsTrigger 
+              value="profile" 
+              className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#733635] data-[state=active]:to-[#8b4a4a] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 rounded-lg font-semibold"
+            >
               <User className="h-4 w-4" />
               Profile
             </TabsTrigger>
-            <TabsTrigger value="members" className="flex items-center gap-2">
+            <TabsTrigger 
+              value="members" 
+              className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#733635] data-[state=active]:to-[#8b4a4a] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 rounded-lg font-semibold"
+            >
               <Users className="h-4 w-4" />
               Members
             </TabsTrigger>
-            <TabsTrigger value="jobs" className="flex items-center gap-2">
+            <TabsTrigger 
+              value="jobs" 
+              className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#733635] data-[state=active]:to-[#8b4a4a] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 rounded-lg font-semibold"
+            >
               <Briefcase className="h-4 w-4" />
               Job Postings
             </TabsTrigger>
           </TabsList>
 
           {/* Profile Tab */}
-          <TabsContent value="profile" className="space-y-6">
-            <Card className="max-w-4xl mx-auto">
-              <CardHeader>
-                <CardTitle style={{ color: '#733635' }} className="text-2xl">
-                  Your Profile
-                </CardTitle>
-                <CardDescription>
-                  Update your personal information and preferences
-                </CardDescription>
+          <TabsContent value="profile" className="space-y-6 animate-in fade-in-50 duration-500">
+            <Card className="max-w-4xl mx-auto shadow-2xl border-2 border-white/50 bg-gradient-to-br from-white to-amber-50/30">
+              <CardHeader className="bg-gradient-to-r from-[#733635] to-[#8b4a4a] text-white rounded-t-lg">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                    <User className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-2xl md:text-3xl font-bold">
+                      Your Profile
+                    </CardTitle>
+                    <CardDescription className="text-white/90 mt-1">
+                      Update your personal information and preferences
+                    </CardDescription>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleProfileSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -594,8 +626,7 @@ export default function Dashboard({ onNavigate, auth, onProfileUpdate, onSession
                     )}
                     <Button
                       type="submit"
-                      className="self-start text-white"
-                      style={{ backgroundColor: '#733635' }}
+                      className="self-start text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 bg-gradient-to-r from-[#733635] to-[#8b4a4a] hover:from-[#8b4a4a] hover:to-[#733635]"
                       disabled={savingProfile}
                     >
                       {savingProfile ? (
@@ -614,43 +645,48 @@ export default function Dashboard({ onNavigate, auth, onProfileUpdate, onSession
                 </form>
 
                 {/* Display current profile info */}
-                <div className="mt-8 pt-8 border-t">
-                  <h3 className="text-lg font-semibold mb-4" style={{ color: '#733635' }}>
-                    Profile Information
-                  </h3>
+                <div className="mt-8 pt-8 border-t-2 border-amber-200/50">
+                  <div className="flex items-center gap-2 mb-6">
+                    <div className="h-1 w-12 bg-gradient-to-r from-[#733635] to-[#8b4a4a] rounded-full"></div>
+                    <h3 className="text-xl font-bold bg-gradient-to-r from-[#733635] to-[#8b4a4a] bg-clip-text text-transparent">
+                      Profile Information
+                    </h3>
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-gray-500">Email</p>
-                      <p className="font-medium">{user?.email || 'N/A'}</p>
+                    <div className="p-4 rounded-lg bg-gradient-to-br from-white to-amber-50/50 border border-amber-100 shadow-sm hover:shadow-md transition-shadow">
+                      <p className="text-xs uppercase tracking-wider text-gray-500 mb-1 font-semibold">Email</p>
+                      <p className="font-semibold text-gray-900">{user?.email || 'N/A'}</p>
                     </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Role</p>
-                      <Badge style={{ backgroundColor: '#733635', color: 'white' }}>
+                    <div className="p-4 rounded-lg bg-gradient-to-br from-white to-amber-50/50 border border-amber-100 shadow-sm hover:shadow-md transition-shadow">
+                      <p className="text-xs uppercase tracking-wider text-gray-500 mb-1 font-semibold">Role</p>
+                      <Badge className="bg-gradient-to-r from-[#733635] to-[#8b4a4a] text-white border-0 shadow-md">
                         {getRoleDisplayName(userRole)}
                       </Badge>
                     </div>
                     {user?.major && (
-                      <div>
-                        <p className="text-sm text-gray-500">Major</p>
-                        <p className="font-medium">{user.major}</p>
+                      <div className="p-4 rounded-lg bg-gradient-to-br from-white to-amber-50/50 border border-amber-100 shadow-sm hover:shadow-md transition-shadow">
+                        <p className="text-xs uppercase tracking-wider text-gray-500 mb-1 font-semibold">Major</p>
+                        <p className="font-semibold text-gray-900">{user.major}</p>
                       </div>
                     )}
                     {user?.year && (
-                      <div>
-                        <p className="text-sm text-gray-500">Year</p>
-                        <p className="font-medium">{user.year}</p>
+                      <div className="p-4 rounded-lg bg-gradient-to-br from-white to-amber-50/50 border border-amber-100 shadow-sm hover:shadow-md transition-shadow">
+                        <p className="text-xs uppercase tracking-wider text-gray-500 mb-1 font-semibold">Year</p>
+                        <Badge variant="outline" className="border-[#733635] text-[#733635] font-semibold">
+                          {user.year}
+                        </Badge>
                       </div>
                     )}
                     {user?.phone && (
-                      <div>
-                        <p className="text-sm text-gray-500">Phone</p>
-                        <p className="font-medium">{user.phone}</p>
+                      <div className="p-4 rounded-lg bg-gradient-to-br from-white to-amber-50/50 border border-amber-100 shadow-sm hover:shadow-md transition-shadow">
+                        <p className="text-xs uppercase tracking-wider text-gray-500 mb-1 font-semibold">Phone</p>
+                        <p className="font-semibold text-gray-900">{user.phone}</p>
                       </div>
                     )}
                     {user?.employeeName && (
-                      <div>
-                        <p className="text-sm text-gray-500">Company</p>
-                        <p className="font-medium">{user.employeeName}</p>
+                      <div className="p-4 rounded-lg bg-gradient-to-br from-white to-amber-50/50 border border-amber-100 shadow-sm hover:shadow-md transition-shadow">
+                        <p className="text-xs uppercase tracking-wider text-gray-500 mb-1 font-semibold">Company</p>
+                        <p className="font-semibold text-gray-900">{user.employeeName}</p>
                       </div>
                     )}
                   </div>
@@ -660,29 +696,36 @@ export default function Dashboard({ onNavigate, auth, onProfileUpdate, onSession
           </TabsContent>
 
           {/* Members Tab */}
-          <TabsContent value="members" className="space-y-6">
-            <Card className="max-w-6xl mx-auto">
-              <CardHeader>
-                <CardTitle style={{ color: '#733635' }} className="text-2xl">
-                  Member Database
-                </CardTitle>
-                <CardDescription>
-                  {userRole === 'admin' || userRole === 'company'
-                    ? 'Browse and search all members'
-                    : 'View member profiles'}
-                </CardDescription>
+          <TabsContent value="members" className="space-y-6 animate-in fade-in-50 duration-500">
+            <Card className="max-w-6xl mx-auto shadow-2xl border-2 border-white/50 bg-gradient-to-br from-white to-amber-50/30">
+              <CardHeader className="bg-gradient-to-r from-[#733635] to-[#8b4a4a] text-white rounded-t-lg">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                    <Users className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-2xl md:text-3xl font-bold">
+                      Member Database
+                    </CardTitle>
+                    <CardDescription className="text-white/90 mt-1">
+                      {userRole === 'admin' || userRole === 'company'
+                        ? 'Browse and search all members'
+                        : 'View member profiles'}
+                    </CardDescription>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
                 {/* Search */}
                 <div className="mb-6">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <div className="relative group">
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#733635] group-focus-within:text-[#8b4a4a] transition-colors" />
                     <Input
                       type="text"
                       placeholder="Search members by name, major, year, interests, or email..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10"
+                      className="pl-12 pr-4 py-3 border-2 border-amber-200 focus:border-[#733635] rounded-xl shadow-sm focus:shadow-lg transition-all duration-300 bg-white/80 backdrop-blur-sm"
                     />
                   </div>
                 </div>
@@ -693,8 +736,7 @@ export default function Dashboard({ onNavigate, auth, onProfileUpdate, onSession
                     <div className="relative">
                       <Button
                         variant="outline"
-                        className="w-full justify-between text-left font-normal bg-white"
-                        style={{ borderColor: '#733635', color: '#733635' }}
+                        className="w-full justify-between text-left font-semibold bg-gradient-to-r from-white to-amber-50/50 border-2 border-[#733635] text-[#733635] hover:bg-gradient-to-r hover:from-[#733635] hover:to-[#8b4a4a] hover:text-white transition-all duration-300 shadow-md hover:shadow-lg"
                         onClick={() => setIsDropdownOpen((prev) => !prev)}
                         disabled={loadingMembers}
                       >
@@ -705,19 +747,20 @@ export default function Dashboard({ onNavigate, auth, onProfileUpdate, onSession
                               ? activeMember.name
                               : 'Select a member'}
                         </span>
+                        <ChevronsUpDown className="h-4 w-4 opacity-70" />
                       </Button>
                       {isDropdownOpen && (
-                        <div className="absolute mt-2 w-full bg-white border rounded-lg shadow-lg overflow-hidden z-10 max-h-64 overflow-y-auto">
+                        <div className="absolute mt-2 w-full bg-white/95 backdrop-blur-md border-2 border-amber-200/50 rounded-xl shadow-2xl overflow-hidden z-10 max-h-64 overflow-y-auto">
                           {filteredMembers.map((member) => (
                             <button
                               key={member.email}
-                              className="w-full text-left px-4 py-3 hover:bg-gray-50 flex flex-col"
+                              className="w-full text-left px-4 py-3 hover:bg-gradient-to-r hover:from-amber-50/50 hover:to-rose-50/30 transition-all duration-200 flex flex-col border-b border-amber-100/50 last:border-0"
                               onClick={() => handleSelectMember(member.email)}
                             >
-                              <span className="font-medium" style={{ color: '#733635' }}>
+                              <span className="font-bold text-lg" style={{ color: '#733635' }}>
                                 {member.name}
                               </span>
-                              <span className="text-sm text-gray-600">
+                              <span className="text-sm text-gray-600 mt-0.5">
                                 {member.major || 'Major TBD'} • {member.year || 'Year TBD'}
                               </span>
                             </button>
@@ -741,46 +784,65 @@ export default function Dashboard({ onNavigate, auth, onProfileUpdate, onSession
                         Showing {filteredMembers.length} of {members.length} members
                       </p>
                     </div>
-                    <div className="border rounded-lg overflow-hidden">
+                    <div className="border-2 border-amber-200/50 rounded-xl overflow-hidden shadow-xl bg-white/80 backdrop-blur-sm">
                       <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Email</TableHead>
-                            <TableHead>Major</TableHead>
-                            <TableHead>Year</TableHead>
-                            <TableHead>Interests</TableHead>
-                            {userRole === 'admin' && <TableHead>Role</TableHead>}
+                        <TableHeader className="bg-gradient-to-r from-[#733635] to-[#8b4a4a]">
+                          <TableRow className="border-amber-200/30 hover:bg-transparent">
+                            <TableHead className="text-white font-bold">Name</TableHead>
+                            <TableHead className="text-white font-bold">Email</TableHead>
+                            <TableHead className="text-white font-bold">Major</TableHead>
+                            <TableHead className="text-white font-bold">Year</TableHead>
+                            <TableHead className="text-white font-bold">Interests</TableHead>
+                            {userRole === 'admin' && <TableHead className="text-white font-bold">Role</TableHead>}
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {filteredMembers.map((member) => (
+                          {filteredMembers.map((member, index) => (
                             <TableRow
                               key={member.email}
-                              className="cursor-pointer hover:bg-gray-50"
+                              className="cursor-pointer hover:bg-gradient-to-r hover:from-amber-50/50 hover:to-rose-50/30 transition-all duration-200 border-b border-amber-100/50"
                               onClick={() => {
                                 setSelectedMemberEmail(member.email);
                                 setSearchQuery(member.name);
                               }}
                             >
-                              <TableCell className="font-medium">{member.name}</TableCell>
-                              <TableCell>{member.email}</TableCell>
-                              <TableCell>{member.major || '—'}</TableCell>
-                              <TableCell>{member.year || '—'}</TableCell>
+                              <TableCell className="font-bold text-gray-900">{member.name}</TableCell>
+                              <TableCell className="text-gray-700">{member.email}</TableCell>
                               <TableCell>
-                                <div className="flex flex-wrap gap-1">
+                                {member.major ? (
+                                  <Badge variant="outline" className="border-[#733635] text-[#733635] font-semibold">
+                                    {member.major}
+                                  </Badge>
+                                ) : (
+                                  <span className="text-gray-400">—</span>
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                {member.year ? (
+                                  <Badge className="bg-gradient-to-r from-[#733635] to-[#8b4a4a] text-white border-0 font-semibold">
+                                    {member.year}
+                                  </Badge>
+                                ) : (
+                                  <span className="text-gray-400">—</span>
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex flex-wrap gap-1.5">
                                   {member.interests?.slice(0, 3).map((interest) => (
                                     <Badge
                                       key={interest}
-                                      variant="outline"
-                                      className="text-xs"
-                                      style={{ borderColor: '#733635', color: '#733635' }}
+                                      className="text-xs px-2 py-0.5 shadow-sm"
+                                      style={{
+                                        background: 'linear-gradient(135deg, rgba(115, 54, 53, 0.15) 0%, rgba(139, 74, 74, 0.15) 100%)',
+                                        color: '#733635',
+                                        border: '1px solid rgba(115, 54, 53, 0.2)',
+                                      }}
                                     >
                                       {interest}
                                     </Badge>
                                   ))}
                                   {member.interests?.length > 3 && (
-                                    <Badge variant="outline" className="text-xs">
+                                    <Badge variant="outline" className="text-xs border-[#733635] text-[#733635]">
                                       +{member.interests.length - 3}
                                     </Badge>
                                   )}
@@ -791,7 +853,9 @@ export default function Dashboard({ onNavigate, auth, onProfileUpdate, onSession
                               </TableCell>
                               {userRole === 'admin' && (
                                 <TableCell>
-                                  <Badge variant="outline">{member.role || 'member'}</Badge>
+                                  <Badge variant="outline" className="border-[#733635] text-[#733635] font-semibold">
+                                    {member.role || 'member'}
+                                  </Badge>
                                 </TableCell>
                               )}
                             </TableRow>
@@ -802,45 +866,50 @@ export default function Dashboard({ onNavigate, auth, onProfileUpdate, onSession
 
                     {/* Member Details Card */}
                     {activeMember && (
-                      <Card className="mt-6">
-                        <CardHeader>
-                          <CardTitle style={{ color: '#733635' }} className="text-xl">
+                      <Card className="mt-6 shadow-xl border-2 border-white/50 bg-gradient-to-br from-white via-amber-50/30 to-white hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
+                        <CardHeader className="bg-gradient-to-r from-[#733635] to-[#8b4a4a] text-white rounded-t-lg">
+                          <CardTitle className="text-2xl font-bold">
                             {activeMember.name}
                           </CardTitle>
-                          <CardDescription>{activeMember.email}</CardDescription>
+                          <CardDescription className="text-white/90">{activeMember.email}</CardDescription>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="p-6">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {activeMember.major && (
-                              <div>
-                                <p className="text-sm text-gray-500">Major</p>
-                                <p className="font-medium">{activeMember.major}</p>
+                              <div className="p-4 rounded-lg bg-gradient-to-br from-white to-amber-50/50 border border-amber-100 shadow-sm hover:shadow-md transition-shadow">
+                                <p className="text-xs uppercase tracking-wider text-gray-500 mb-1 font-semibold">Major</p>
+                                <p className="font-semibold text-gray-900 text-lg">{activeMember.major}</p>
                               </div>
                             )}
                             {activeMember.year && (
-                              <div>
-                                <p className="text-sm text-gray-500">Year</p>
-                                <p className="font-medium">{activeMember.year}</p>
+                              <div className="p-4 rounded-lg bg-gradient-to-br from-white to-amber-50/50 border border-amber-100 shadow-sm hover:shadow-md transition-shadow">
+                                <p className="text-xs uppercase tracking-wider text-gray-500 mb-1 font-semibold">Year</p>
+                                <Badge className="bg-gradient-to-r from-[#733635] to-[#8b4a4a] text-white border-0 shadow-md text-sm px-3 py-1">
+                                  {activeMember.year}
+                                </Badge>
                               </div>
                             )}
                             {activeMember.phone && (
-                              <div>
-                                <p className="text-sm text-gray-500">Phone</p>
-                                <p className="font-medium">{activeMember.phone}</p>
+                              <div className="p-4 rounded-lg bg-gradient-to-br from-white to-amber-50/50 border border-amber-100 shadow-sm hover:shadow-md transition-shadow">
+                                <p className="text-xs uppercase tracking-wider text-gray-500 mb-1 font-semibold flex items-center gap-1">
+                                  <Phone className="h-3 w-3" />
+                                  Phone
+                                </p>
+                                <p className="font-semibold text-gray-900">{activeMember.phone}</p>
                               </div>
                             )}
                             {activeMember.interests?.length > 0 && (
-                              <div className="col-span-1 md:col-span-2">
-                                <p className="text-sm text-gray-500 mb-2">Interests</p>
+                              <div className="col-span-1 md:col-span-2 p-4 rounded-lg bg-gradient-to-br from-white to-amber-50/50 border border-amber-100 shadow-sm">
+                                <p className="text-xs uppercase tracking-wider text-gray-500 mb-3 font-semibold">Interests</p>
                                 <div className="flex flex-wrap gap-2">
                                   {activeMember.interests.map((interest) => (
                                     <Badge
                                       key={interest}
-                                      className="text-xs"
+                                      className="text-xs px-3 py-1.5 shadow-sm hover:shadow-md transition-all duration-200 transform hover:scale-105"
                                       style={{
-                                        backgroundColor: 'rgba(115, 54, 53, 0.1)',
+                                        background: 'linear-gradient(135deg, rgba(115, 54, 53, 0.15) 0%, rgba(139, 74, 74, 0.15) 100%)',
                                         color: '#733635',
-                                        border: 'none',
+                                        border: '1px solid rgba(115, 54, 53, 0.2)',
                                       }}
                                     >
                                       {interest}
@@ -855,8 +924,7 @@ export default function Dashboard({ onNavigate, auth, onProfileUpdate, onSession
                                   href={activeMember.resumeUrl}
                                   target="_blank"
                                   rel="noreferrer"
-                                  className="inline-flex items-center gap-2 text-sm hover:underline"
-                                  style={{ color: '#733635' }}
+                                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-[#733635] to-[#8b4a4a] text-white text-sm font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                                 >
                                   <FileText className="h-4 w-4" />
                                   View Resume
@@ -878,30 +946,36 @@ export default function Dashboard({ onNavigate, auth, onProfileUpdate, onSession
           </TabsContent>
 
           {/* Job Postings Tab */}
-          <TabsContent value="jobs" className="space-y-6">
-            <Card className="max-w-6xl mx-auto">
-              <CardHeader>
-                <CardTitle style={{ color: '#733635' }} className="text-2xl">
-                  Job Postings
-                </CardTitle>
-                <CardDescription>
-                  {userRole === 'admin' || userRole === 'company'
-                    ? 'Manage and view all job postings'
-                    : 'Browse available job opportunities'}
-                </CardDescription>
+          <TabsContent value="jobs" className="space-y-6 animate-in fade-in-50 duration-500">
+            <Card className="max-w-6xl mx-auto shadow-2xl border-2 border-white/50 bg-gradient-to-br from-white to-amber-50/30">
+              <CardHeader className="bg-gradient-to-r from-[#733635] to-[#8b4a4a] text-white rounded-t-lg">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                    <Briefcase className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-2xl md:text-3xl font-bold">
+                      Job Postings
+                    </CardTitle>
+                    <CardDescription className="text-white/90 mt-1">
+                      {userRole === 'admin' || userRole === 'company'
+                        ? 'Manage and view all job postings'
+                        : 'Browse available job opportunities'}
+                    </CardDescription>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
-                {/* Search and Filter */}
-                <div className="mb-6 space-y-4">
-                  {/* Search Bar */}
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                {/* Search */}
+                <div className="mb-6">
+                  <div className="relative group">
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#733635] group-focus-within:text-[#8b4a4a] transition-colors" />
                     <Input
                       type="text"
                       placeholder="Search jobs by title, company, location, or type..."
                       value={jobSearchQuery}
                       onChange={(e) => setJobSearchQuery(e.target.value)}
-                      className="pl-10"
+                      className="pl-12 pr-4 py-3 border-2 border-amber-200 focus:border-[#733635] rounded-xl shadow-sm focus:shadow-lg transition-all duration-300 bg-white/80 backdrop-blur-sm"
                     />
                   </div>
                   
