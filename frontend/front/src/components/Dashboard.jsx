@@ -527,24 +527,24 @@ export default function Dashboard({ onNavigate, auth, onProfileUpdate, onSession
         )}
 
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full max-w-2xl mx-auto mb-10 grid-cols-3 bg-white/80 backdrop-blur-sm shadow-lg border-2 border-white/50 rounded-xl p-1.5">
+          <TabsList className="w-full max-w-3xl mx-auto mb-10 gap-3 bg-white/90 backdrop-blur-sm shadow-lg border-2 border-white/60 rounded-2xl p-3 sm:flex-nowrap">
             <TabsTrigger 
               value="profile" 
-              className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#733635] data-[state=active]:to-[#8b4a4a] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 rounded-lg font-semibold"
+              className="flex-1 justify-center gap-2 rounded-lg border border-[#733635]/10 bg-white/80 text-[#733635] shadow-sm transition-all duration-300 hover:border-[#733635]/40 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#733635] data-[state=active]:to-[#8b4a4a] data-[state=active]:text-white data-[state=active]:shadow-lg font-semibold"
             >
               <User className="h-4 w-4" />
               Profile
             </TabsTrigger>
             <TabsTrigger 
               value="members" 
-              className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#733635] data-[state=active]:to-[#8b4a4a] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 rounded-lg font-semibold"
+              className="flex-1 justify-center gap-2 rounded-lg border border-[#733635]/10 bg-white/80 text-[#733635] shadow-sm transition-all duration-300 hover:border-[#733635]/40 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#733635] data-[state=active]:to-[#8b4a4a] data-[state=active]:text-white data-[state=active]:shadow-lg font-semibold"
             >
               <Users className="h-4 w-4" />
               Members
             </TabsTrigger>
             <TabsTrigger 
               value="jobs" 
-              className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#733635] data-[state=active]:to-[#8b4a4a] data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 rounded-lg font-semibold"
+              className="flex-1 justify-center gap-2 rounded-lg border border-[#733635]/10 bg-white/80 text-[#733635] shadow-sm transition-all duration-300 hover:border-[#733635]/40 data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#733635] data-[state=active]:to-[#8b4a4a] data-[state=active]:text-white data-[state=active]:shadow-lg font-semibold"
             >
               <Briefcase className="h-4 w-4" />
               Job Postings
@@ -1158,7 +1158,7 @@ export default function Dashboard({ onNavigate, auth, onProfileUpdate, onSession
                             <div className="flex justify-between items-start">
                               <div>
                                 <CardTitle className="text-xl">{job.title}</CardTitle>
-                                <CardDescription className="flex items-center gap-4 mt-2">
+                                <CardDescription className="flex flex-wrap items-center gap-3 mt-2 text-sm text-gray-700">
                                   <span className="flex items-center gap-1">
                                     <Building2 className="h-4 w-4" />
                                     {job.company}
@@ -1243,7 +1243,7 @@ export default function Dashboard({ onNavigate, auth, onProfileUpdate, onSession
                 <DialogTitle className="text-2xl" style={{ color: '#733635' }}>
                   {selectedJob.title}
                 </DialogTitle>
-                <DialogDescription className="flex items-center gap-4 pt-2">
+                <DialogDescription className="flex flex-wrap items-center gap-3 pt-2 text-gray-700">
                   <span className="flex items-center gap-1">
                     <Building2 className="h-4 w-4" />
                     {selectedJob.company}
