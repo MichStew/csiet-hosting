@@ -77,6 +77,12 @@ DEFAULT_ADMIN_EMAIL=admin@example.com
 DEFAULT_ADMIN_PASSWORD=adminpass123
 DEFAULT_ADMIN_NAME=Site Admin
 CLIENT_ORIGIN=http://localhost:5173
+SMTP_HOST=smtp.your-provider.com
+SMTP_PORT=587
+SMTP_USER=apikey-or-username
+SMTP_PASS=secret
+SMTP_SECURE=false
+SMTP_FROM=CSIET <no-reply@your-domain.com>
 ```
 
 - Already included for local development; adjust values (especially `JWT_SECRET` + `MONGO_URI`) before deploying.
@@ -84,6 +90,7 @@ CLIENT_ORIGIN=http://localhost:5173
 - `npm run seed` inserts the default login plus sample members populated with majors, years, interests, and resume links.
 - An admin user is seeded alongside members. Use `role: "admin"` when calling `/api/auth/login` (example below) to request that credential.
 - `CLIENT_ORIGIN` may contain a comma-separated list of allowed frontends for CORS.
+- SMTP settings are optional; when omitted, emails are logged to the server console for development. Set them in production to deliver verification and password reset emails.
 
 Example admin login request:
 

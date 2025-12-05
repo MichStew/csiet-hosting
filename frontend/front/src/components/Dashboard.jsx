@@ -70,6 +70,8 @@ export default function Dashboard({ onNavigate, auth, onProfileUpdate, onSession
 
   const [errorMessage, setErrorMessage] = useState('');
   const defaultSessionMessage = 'Your session expired. Please log in again.';
+  const [verificationToken, setVerificationToken] = useState('');
+  const [verificationStatus, setVerificationStatus] = useState({ type: '', message: '' });
 
   const handleExpiredSession = (message) => {
     const readableMessage = message || defaultSessionMessage;
@@ -355,6 +357,51 @@ export default function Dashboard({ onNavigate, auth, onProfileUpdate, onSession
     }
   };
 
+  const handleRequestVerification = async () => {
+    if (!user?.email) return;
+    setVerificationStatus({ type: '', message: '' });
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/auth/request-verification`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: user.email, role: userRole }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data?.message || 'Unable to send verification email.');
+      }
+      setVerificationStatus({ type: 'success', message: data?.message || 'Verification email sent.' });
+      if (data?.verificationToken) {
+        setVerificationToken(data.verificationToken);
+      }
+    } catch (err) {
+      setVerificationStatus({ type: 'error', message: err.message || 'Unable to send verification email.' });
+    }
+  };
+
+  const handleVerifyEmail = async (event) => {
+    event.preventDefault();
+    setVerificationStatus({ type: '', message: '' });
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/auth/verify-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: verificationToken }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data?.message || 'Unable to verify email.');
+      }
+      setVerificationStatus({ type: 'success', message: data?.message || 'Email verified.' });
+      setVerificationToken('');
+      if (data?.user) {
+        onProfileUpdate?.(data.user);
+      }
+    } catch (err) {
+      setVerificationStatus({ type: 'error', message: err.message || 'Unable to verify email.' });
+    }
+  };
+
   if (!token) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ backgroundColor: '#ebe3d5' }}>
@@ -431,6 +478,52 @@ export default function Dashboard({ onNavigate, auth, onProfileUpdate, onSession
           <div className="mb-6 text-center text-red-600 bg-red-50 border border-red-200 rounded-lg p-4">
             {errorMessage}
           </div>
+        )}
+
+        {!user?.emailVerified && (
+          <Card className="mb-8 border-2 border-amber-200 bg-amber-50/60">
+            <CardContent className="py-4">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <p className="font-semibold text-amber-900">Verify your email to keep your account secure.</p>
+                  <p className="text-sm text-amber-800/80">We&apos;ll send a code to {user?.email}. Paste it below to confirm.</p>
+                  {verificationStatus.message && (
+                    <p
+                      className={`text-sm mt-2 ${
+                        verificationStatus.type === 'success' ? 'text-green-700' : 'text-red-600'
+                      }`}
+                    >
+                      {verificationStatus.message}
+                    </p>
+                  )}
+                </div>
+                <div className="flex flex-col gap-2 w-full md:w-auto md:min-w-[320px]">
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Verification code"
+                      value={verificationToken}
+                      onChange={(e) => setVerificationToken(e.target.value)}
+                      className="bg-white"
+                    />
+                    <Button
+                      onClick={handleVerifyEmail}
+                      className="bg-gradient-to-r from-[#733635] to-[#8b4a4a] text-white"
+                    >
+                      Verify
+                    </Button>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" onClick={handleRequestVerification} className="border-[#733635] text-[#733635]">
+                      Resend code
+                    </Button>
+                    <Button variant="ghost" onClick={() => setVerificationToken('')} className="text-[#733635]">
+                      Clear
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         )}
 
         <Tabs defaultValue="profile" className="w-full">

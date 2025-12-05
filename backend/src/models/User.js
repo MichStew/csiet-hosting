@@ -52,6 +52,24 @@ const userSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    emailVerified: {
+      type: Boolean,
+      default: true, // legacy users stay verified; new registrations override to false
+    },
+    verificationToken: {
+      type: String,
+      index: true,
+    },
+    verificationExpires: {
+      type: Date,
+    },
+    resetToken: {
+      type: String,
+      index: true,
+    },
+    resetTokenExpires: {
+      type: Date,
+    },
   },
   { timestamps: true }
 );
@@ -69,6 +87,7 @@ userSchema.methods.toSafeObject = function toSafeObject() {
     profileImageUrl: this.profileImageUrl || '',
     employeeName: this.employeeName || '',
     phone: this.phone || '',
+    emailVerified: this.emailVerified ?? true,
   };
 };
 
